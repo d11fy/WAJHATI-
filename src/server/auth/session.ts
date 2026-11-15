@@ -5,7 +5,13 @@ import { redirect } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 import { getSessionUser } from "./repository";
 
-const secure = process.env.NODE_ENV === "production";
+function isHttpsOrLocal() {
+  const origin = process.env.APP_ORIGIN;
+  if (!origin) return true;
+  return origin.startsWith("https://") || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1");
+}
+
+const secure = process.env.NODE_ENV === "production" && isHttpsOrLocal();
 const sessionCookie = secure ? "__Host-dar_session" : "dar_session";
 const cookieOptions = { httpOnly: true, secure, sameSite: "lax", path: "/" } as const;
 
@@ -36,7 +42,11 @@ export async function requireUser(locale: Locale) {
 export async function trustedClientIp() {
   const header = process.env.TRUSTED_CLIENT_IP_HEADER;
   if (!header) return undefined;
-  const value = (await headers()).get(header)?.trim();
-  if (!value || !isIP(value)) throw new Error("The trusted client IP header must contain a single IP address.");
-  return value;
+  const h = await headers();
+  const raw = h.get(header)?.trim();
+  const candidate = raw?.split(",")[0]?.trim();
+  if (candidate && isIP(candidate)) return candidate;
+  const realIp = h.get("x-real-ip")?.trim();
+  if (realIp && isIP(realIp)) return realIp;
+  return undefined;
 }

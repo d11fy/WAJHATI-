@@ -35,7 +35,8 @@ async function boundedJson(request: Request): Promise<unknown> {
   finally { reader.releaseLock(); }
 }
 
-const secure = process.env.NODE_ENV === "production";
+const origin = process.env.APP_ORIGIN;
+const secure = process.env.NODE_ENV === "production" && (!origin || origin.startsWith("https://") || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1"));
 const cookieName = secure ? "__Host-dar_visitor" : "dar_visitor";
 const response = (value: unknown, status = 200) => Response.json(value, { status, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
 

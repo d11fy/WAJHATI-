@@ -65,7 +65,7 @@ async function provisionDatabase(env) {
   env.PLATFORM_MFA_KEY ||= deriveHex(secretSeed, "mfa-key", 32);
   env.SMTP_CONFIG_KEY ||= deriveHex(secretSeed, "smtp-key", 32);
   env.PAYMENT_PROOF_KEY ||= deriveHex(secretSeed, "proof-key", 32);
-  env.TRUSTED_CLIENT_IP_HEADER ||= "x-forwarded-for";
+  env.TRUSTED_CLIENT_IP_HEADER ||= "x-real-ip";
   env.PUBLIC_SIGNUP_ENABLED ||= "true";
 
   const adminClient = new pg.Client({ connectionString: rawUrl, connectionTimeoutMillis: 10_000 });
@@ -194,3 +194,4 @@ async function main() {
 }
 
 void main();
+
