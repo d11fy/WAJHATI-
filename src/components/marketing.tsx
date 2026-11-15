@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Globe2, Menu, Plus } from "lucide-react";
+import { ArrowRight, CheckCircle2, Globe2, Menu, MessageCircle, Plus, XCircle } from "lucide-react";
 import bag from "@/assets/wajhati/bag.svg";
 import check from "@/assets/wajhati/check.svg";
 import credit from "@/assets/wajhati/credit.svg";
@@ -15,6 +15,7 @@ import { PublicPricing } from "@/components/public-pricing";
 import { registrationAvailable } from "@/lib/billing";
 import { copy } from "@/lib/copy";
 import { otherLocale, type Locale } from "@/lib/i18n";
+import { defaultPlatformWhatsapp, subscriptionContact } from "@/lib/platform-contact";
 import { publicSignupEnabled } from "@/server/auth/mail";
 import { marketingBilling } from "@/server/billing/marketing";
 import { contactSettings } from "@/server/platform/contact";
@@ -30,6 +31,22 @@ const strings = {
     features: "كل أدوات تجارتك في مكان واحد", featuresNote: "صممت واجهتي لتسهّل البيع، لا لتضيف عليك خطوات جديدة.",
     featuresHero: "منصة تساعدك على البيع", featuresIntro: "الوظائف الأساسية التي يحتاجها التاجر العربي، بواجهة عملية ومتناسقة.",
     cards: [["أطلق متجرك بسهولة", "رابط خاص، هوية متكاملة وصفحات منتجات منظمة."], ["كتالوج بإدارة مريحة", "منتجات وأسعار وخيارات وصور من لوحة واحدة."], ["تحكّم في التصميم", "خصّص الشعار والألوان والبنرات والأقسام."], ["طلبات عبر المحادثات", "سلة واضحة تنقل ملخّص الطلب لوسيلة التواصل."], ["اشتراكات مرنة", "باقات شهرية وسنوية حيث تتوفر وسائل الدفع."], ["حماية لبيانات المتاجر", "صلاحيات مستقلة لكل متجر وتحقق عند مراجعة الدفع."]],
+    compareKicker: "الفرق في تجربة البيع اليومية",
+    compareTitle: "ودّع فوضى الرسائل المتكررة، واستقبل طلبات جاهزة.",
+    compareBeforeTitle: "البيع العشوائي عبر المحادثات",
+    compareBefore: [
+      "الرد اليومي المتكرر على أسئلة الأسعار والمقاسات والتوفر.",
+      "رسائل غير مكتملة وضياع طلبات العملاء وسط المحادثات.",
+      "حساب يدوي مرهق للمجموع ومراجعة كل صنف من الصفر.",
+      "غياب رابط متجر موحّد يعكس هوية علامتك التجارية.",
+    ],
+    compareAfterTitle: "البيع المنظم عبر واجهتي",
+    compareAfter: [
+      "كتالوج واضح يعرض الصور والأسعار والخيارات المتاحة فوراً.",
+      "سلة ذكية تجمع الأصناف وترسل ملخصاً موثقاً برقم مرجعي.",
+      "حساب آلي دقيق للمجموع محمّي من أي تلاعب بالأسعار.",
+      "واجهة احترافية بشعارك وألوانك ورمز QR جاهز للمشاركة.",
+    ],
     how: "من الفكرة لأول طلب بأربع خطوات", howNote: "ابدأ اليوم واترك كل التفاصيل في مكانها الصحيح.",
     steps: [["إنشاء حساب", "ابدأ بإعداد متجرك."], ["إضافة المنتجات", "أضف صورًا وأسعارًا وخيارات."], ["اختيار التصميم", "اختر مظهرًا يعكس هويتك."], ["استقبال الطلبات", "شارك الرابط وابدأ التواصل."]],
     plans: "باقات تكبر مع مشروعك", pricing: "باقات واضحة. إمكانيات حقيقية.", pricingNote: "اختر الخطة المناسبة لك. تختلف الأسعار وعروض الدفع حسب السوق.",
@@ -42,6 +59,7 @@ const strings = {
     marketHelp: "تظهر الأسواق والعملات التي لديها عرض منشور وطريقة دفع نشطة. اختر دورة الفوترة لعرض السعر الكامل بتلك العملة.",
     noOffers: "لا توجد باقات منشورة في الأسواق المتاحة حاليًا.", unavailable: "غير متاحة", available: "عرض منشور",
     billingAccess: "سجّل الدخول لإدارة الاشتراك", workspaces: "مساحة عمل التاجر", quickGuide: "دليل البداية",
+    whatsappSupport: "تواصل معنا عبر واتساب",
   },
   en: {
     description: "A platform for creating online stores", nav: ["Features", "How it works", "Pricing", "FAQ"], menu: "Menu",
@@ -50,6 +68,22 @@ const strings = {
     features: "Everything you need to run your store", featuresNote: "WAJHATI keeps selling straightforward.",
     featuresHero: "A platform that helps you sell", featuresIntro: "The essentials for online merchants, in one consistent workspace.",
     cards: [["Launch your store", "A dedicated link, your branding and organized product pages."], ["Manage your catalog", "Products, prices, options and photos in one dashboard."], ["Control your design", "Customize your logo, colors, banners and sections."], ["Orders through chat", "Send a clear cart summary to your selected contact channel."], ["Flexible subscriptions", "Monthly and annual offers where payment is available."], ["Protect store data", "Separate store permissions and verification for payment reviews."]],
+    compareKicker: "THE DAILY SELLING DIFFERENCE",
+    compareTitle: "Replace chaotic chat threads with structured orders.",
+    compareBeforeTitle: "Unstructured DM Selling",
+    compareBefore: [
+      "Repeating prices, sizes, and availability in every chat.",
+      "Incomplete messages and lost orders across threads.",
+      "Manual total calculations and checking every item by hand.",
+      "No unified storefront link representing your brand identity.",
+    ],
+    compareAfterTitle: "Structured Selling with WAJHATI",
+    compareAfter: [
+      "A clear catalog displaying photos, prices, and options upfront.",
+      "Smart cart that prepares a verified order summary with a reference ID.",
+      "Server-verified totals protected against price tampering.",
+      "Branded storefront with your logo, colors, and print-ready QR code.",
+    ],
     how: "Four steps from idea to first order", howNote: "Get started and keep the details in one place.",
     steps: [["Create an account", "Set up your store."], ["Add products", "Add photos, prices and options."], ["Choose a design", "Make the store feel like yours."], ["Receive orders", "Share your link and start a conversation."]],
     plans: "Plans that grow with your store", pricing: "Clear plans. Real features.", pricingNote: "Choose a plan for your store. Prices and payment availability vary by market.",
@@ -62,6 +96,7 @@ const strings = {
     marketHelp: "Markets and currencies appear when a published offer and an active payment method are available. Choose a billing interval to see its full price in that currency.",
     noOffers: "There are no published plans in the available markets at the moment.", unavailable: "Unavailable", available: "Published offer",
     billingAccess: "Sign in to manage billing", workspaces: "Merchant workspace", quickGuide: "Getting started",
+    whatsappSupport: "Contact us on WhatsApp",
   },
 } as const;
 
@@ -84,6 +119,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
   const links = [`${root}/features`, `${root}#how`, `${root}/pricing`, `${root}/faq`];
   const billing = section === "pricing" || section === "home" ? await marketingBilling() : null;
   const contact = section === "pricing" || section === "home" ? await contactSettings() : null;
+  const supportUrl = subscriptionContact(contact?.whatsapp ?? defaultPlatformWhatsapp, locale);
   const number = new Intl.NumberFormat(locale);
   const nav = <><Link href={`${root}#themes`}>{ar ? "الثيمات" : "Themes"}</Link>{t.nav.map((label, index) => <Link key={label} href={links[index]} aria-current={links[index] === root + page ? "page" : undefined}>{label}</Link>)}</>;
   return <div className="wajhati-platform wajhati-marketing">
@@ -93,7 +129,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
       <div className="wajhati-market-actions"><Link href={`/${alt}${page}`} lang={alt} hrefLang={alt} aria-label={copy[locale].switchLanguage}><Globe2 size={18} aria-hidden="true" /></Link>
         <Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link>{signup && <Link href={action} className="button wajhati-cta">{actionLabel}</Link>}
       </div>
-      <details className="wajhati-mobile-nav"><summary aria-label={t.menu}><Menu size={23} aria-hidden="true" /></summary><div>{nav}<Link href={`/${alt}${page}`} lang={alt} hrefLang={alt}>{copy[locale].switchLanguage}</Link><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link></div></details>
+      <details className="wajhati-mobile-nav"><summary aria-label={t.menu}><Menu size={23} aria-hidden="true" /></summary><div>{nav}<Link href={`/${alt}${page}`} lang={alt} hrefLang={alt}>{copy[locale].switchLanguage}</Link><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link>{supportUrl && <a href={supportUrl} target="_blank" rel="noopener noreferrer">{t.whatsappSupport}</a>}</div></details>
     </nav></header>
     <main id="content">
       <section className={`wajhati-market-hero wajhati-${section}-hero`}>
@@ -105,7 +141,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
             {(section === "home" || section === "features") && accessNote && <p className="wajhati-market-trial">{accessNote}</p>}
             {section === "home" && publicSignup && billing?.trialDays && <p className="wajhati-market-trial">{ar ? `تجربة لمدة ${number.format(billing.trialDays)} أيام للحسابات المؤهلة` : `${number.format(billing.trialDays)}-day trial for eligible accounts`}</p>}
           </div>
-          {section === "home" && <BrandStage locale={locale} />}
+          {section === "home" && <BrandStage locale={locale} interactive />}
         </div>
       </section>
       {section === "home" && <div className="wajhati-value-band"><ol className="wajhati-market-width">{t.values.map((value, index) => <li key={value}><span>{String(index + 1).padStart(2, "0")}</span>{value}</li>)}</ol></div>}
@@ -115,17 +151,33 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
           {section === "home" && <div className="premium-workspace-intro"><div><p className="wajhati-section-kicker">{ar ? "خلف كل متجر جميل، إدارة أبسط" : "BEHIND EVERY GREAT STORE"}</p><h2>{t.features}</h2><p>{t.featuresNote}</p><Link href={`${root}/features`} className="premium-text-link">{t.explore}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link></div><ProductPreview locale={locale} /></div>}
           <div className={section === "home" ? "wajhati-feature-band" : "wajhati-market-grid"}>{(section === "home" ? [1, 3, 2] : [0, 1, 2, 3, 4, 5]).map((i) => <article className={section === "home" ? undefined : "panel"} key={i}><span className="icon-tile"><Image src={icons[i]} alt="" unoptimized /></span><div><h3>{t.cards[i][0]}</h3><p>{t.cards[i][1]}</p></div></article>)}</div>
         </section>
+        <section className="wajhati-comparison" aria-labelledby="wajhati-compare-title">
+          <div className="wajhati-market-width wajhati-market-section">
+            <p className="wajhati-section-kicker">{t.compareKicker}</p>
+            <h2 id="wajhati-compare-title">{t.compareTitle}</h2>
+            <div className="wajhati-comparison-grid">
+              <article className="wajhati-comparison-card wajhati-comparison-before">
+                <h3>{t.compareBeforeTitle}</h3>
+                <ul>{t.compareBefore.map((item) => <li key={item}><XCircle size={18} aria-hidden="true" /><span>{item}</span></li>)}</ul>
+              </article>
+              <article className="wajhati-comparison-card wajhati-comparison-after">
+                <h3>{t.compareAfterTitle}</h3>
+                <ul>{t.compareAfter.map((item) => <li key={item}><CheckCircle2 size={18} aria-hidden="true" /><span>{item}</span></li>)}</ul>
+              </article>
+            </div>
+          </div>
+        </section>
         <section id="how" className="wajhati-how"><div className="wajhati-market-width wajhati-market-section"><p className="wajhati-section-kicker">{t.quickGuide}</p><h2>{t.how}</h2><p>{t.howNote}</p>
           <ol>{t.steps.map(([title, note], index) => <li key={title}><span>{number.format(index + 1)}</span><strong>{index === 0 && !signup ? copy[locale].signIn : title}</strong><p>{note}</p></li>)}</ol>
         </div></section>
       </>}
       {(section === "home" || section === "pricing") && <PublicPricing locale={locale} catalog={billing?.catalog ?? null} compact={section === "home"} requestedMarket={typeof search.market === "string" ? search.market : undefined} whatsapp={contact?.whatsapp} trialDays={billing?.trialDays} />}
-      {section === "home" && <section className="premium-setup wajhati-market-width"><span className="icon-tile"><Image src={spark} alt="" unoptimized /></span><div><h2>{ar ? "تفضّل أن نجهّز المتجر معك؟" : "Prefer a helping hand with setup?"}</h2><p>{ar ? "أنشئ متجرك بنفسك، أو اطلب خدمة التجهيز من لوحة متجرك عند توفرها. خدمة التجهيز منفصلة عن الاشتراك." : "Build it yourself, or request setup assistance from your store dashboard when available. Setup is separate from the subscription."}</p></div><Link href={`${root}/sign-in`} className="button button-secondary">{ar ? "الدخول إلى لوحة المتجر" : "Open your dashboard"}</Link></section>}
+      {section === "home" && <section className="premium-setup wajhati-market-width"><span className="icon-tile"><Image src={spark} alt="" unoptimized /></span><div><h2>{ar ? "تفضّل أن نجهّز المتجر معك؟" : "Prefer a helping hand with setup?"}</h2><p>{ar ? "أنشئ متجرك بنفسك، أو اطلب خدمة التجهيز من لوحة متجرك عند توفرها. خدمة التجهيز منفصلة عن الاشتراك." : "Build it yourself, or request setup assistance from your store dashboard when available. Setup is separate from the subscription."}</p></div><div className="flex flex-wrap gap-2">{supportUrl && <a href={supportUrl} target="_blank" rel="noopener noreferrer" className="button button-primary"><MessageCircle size={18} aria-hidden="true" />{t.whatsappSupport}</a>}<Link href={`${root}/sign-in`} className="button button-secondary">{ar ? "الدخول إلى لوحة المتجر" : "Open your dashboard"}</Link></div></section>}
       {(section === "faq" || section === "home") && <section className="wajhati-market-width wajhati-market-section wajhati-questions" aria-label={t.nav[3]}>{section === "home" && <><p className="wajhati-section-kicker">{t.nav[3]}</p><h2>{t.faq}</h2></>}{(section === "home" ? t.questions.slice(0, 4) : t.questions).map(([question, answer], index) => <details key={question} className="panel" open={index === 0}><summary>{question}<Plus size={20} aria-hidden="true" /></summary><p>{answer}</p></details>)}</section>}
-      {section === "home" && <section className="wajhati-market-closing"><div className="wajhati-market-width"><h2>{t.closing}</h2><Link className="button wajhati-cta" href={action}>{actionLabel}</Link></div></section>}
+      {section === "home" && <section className="wajhati-market-closing"><div className="wajhati-market-width"><h2>{t.closing}</h2><div className="mt-4 flex flex-wrap justify-center gap-3"><Link className="button wajhati-cta" href={action}>{actionLabel}</Link>{supportUrl && <a className="button wajhati-hero-secondary" href={supportUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} aria-hidden="true" />{t.whatsappSupport}</a>}</div></div></section>}
     </main>
     <footer className="wajhati-market-footer"><div className="wajhati-market-width"><div><Brand locale={locale} /><p>{t.description}</p></div>
-      <nav aria-label={t.menu}>{nav}</nav><div><strong>{t.workspaces}</strong><p><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link></p></div>
+      <nav aria-label={t.menu}>{nav}</nav><div><strong>{t.workspaces}</strong><p><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link></p>{supportUrl && <p className="mt-1"><a href={supportUrl} target="_blank" rel="noopener noreferrer">{t.whatsappSupport}</a></p>}</div>
     </div></footer>
   </div>;
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogFrame, Price } from "@/components/catalog/catalog-ui";
-import { OrderCommand } from "@/components/orders/merchant-forms";
+import { OrderCommand, OrderReplyTemplates } from "@/components/orders/merchant-forms";
 import { localizedValue } from "@/lib/catalog";
 import { lineTotal } from "@/lib/checkout";
 import { orderCopy } from "@/lib/order-copy";
@@ -34,6 +34,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
         </li>)}
       </ul>
       <p className="font-bold">{t.total} <Price value={order.total} currency={order.currency} locale={locale} /></p>
+      <OrderReplyTemplates locale={locale} reference={order.reference} total={order.total} currency={order.currency} />
       {!order.archivedAt && <div className="grid gap-2 sm:grid-cols-3">
         {canChange && <><OrderCommand locale={locale} slug={slug} reference={reference} operation="confirm" /><OrderCommand locale={locale} slug={slug} reference={reference} operation="cancel" /></>}
         <OrderCommand locale={locale} slug={slug} reference={reference} operation="archive" />

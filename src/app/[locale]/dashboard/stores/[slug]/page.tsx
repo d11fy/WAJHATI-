@@ -1,4 +1,4 @@
-import { ExternalLink, LayoutList, Palette, Store } from "lucide-react";
+import { CheckCircle2, Circle, ExternalLink, LayoutList, MessageSquare, Palette, Store } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogFrame, Price } from "@/components/catalog/catalog-ui";
@@ -37,6 +37,36 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
     [orders.orders, data.orderCount],
     [ar ? "الطلبات المؤكدة" : "Confirmed orders", data.confirmed],
   ] as const;
+
+  const checklist = [
+    {
+      done: data.categoryCount > 0,
+      label: ar ? "إضافة تصنيفات المنتجات" : "Add product categories",
+      href: `${merchantPath}/categories`,
+      cta: ar ? "إدارة التصنيفات" : "Categories",
+    },
+    {
+      done: data.publishedProducts > 0,
+      label: ar ? "نشر أول منتج في الكتالوج" : "Publish your first product",
+      href: `${merchantPath}/products/new`,
+      cta: catalog.addProduct,
+    },
+    {
+      done: data.contactEnabled,
+      label: ar ? "تفعيل استقبال الطلبات (واتساب / إنستغرام)" : "Enable WhatsApp or Instagram orders",
+      href: `${merchantPath}/contact`,
+      cta: orders.settingsLink,
+    },
+    {
+      done: live,
+      label: ar ? "نشر المتجر ومشاركة الرابط مع العملاء" : "Publish store and share link",
+      href: `${merchantPath}/design`,
+      cta: themeCopy[locale].design,
+    },
+  ];
+  const completedSteps = checklist.filter((step) => step.done).length;
+  const readinessPercent = Math.round((completedSteps / checklist.length) * 100);
+
   return (
     <CatalogFrame locale={locale} slug={slug} path="" storeName={store.name} showBilling={store.role === "owner"}>
       <header className="mb-5 flex flex-wrap items-center justify-between gap-4">
@@ -58,6 +88,31 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
           <dt className="text-sm font-semibold text-muted">{label}</dt><dd className="mt-1 text-3xl font-black">{number.format(value)}</dd>
         </div>)}
       </dl>
+      <section className="panel mb-5 grid gap-4 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-xl font-black">{ar ? "جاهزية المتجر للبيع" : "Store launch readiness"}</h2>
+            <p className="text-sm text-muted">{ar ? "أكمل هذه الخطوات الأساسية لتستقبل طلبات العملاء بأفضل تجربة." : "Complete these core steps to start receiving customer orders seamlessly."}</p>
+          </div>
+          <span className="tag font-bold">{number.format(completedSteps)} / {number.format(checklist.length)} ({number.format(readinessPercent)}%)</span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-canvas" aria-hidden="true">
+          <div className="h-full rounded-full bg-teal-700 transition-all" style={{ width: `${readinessPercent}%` }} />
+        </div>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {checklist.map((step) => (
+            <li key={step.label} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-canvas p-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                {step.done
+                  ? <CheckCircle2 size={19} className="shrink-0 text-teal-700" aria-hidden="true" />
+                  : <Circle size={19} className="shrink-0 text-muted" aria-hidden="true" />}
+                <span className={step.done ? "text-sm font-semibold text-muted line-through" : "text-sm font-bold"}>{step.label}</span>
+              </div>
+              {!step.done && <Link className="text-xs font-bold text-teal-700 underline underline-offset-4 shrink-0" href={step.href}>{step.cta}</Link>}
+            </li>
+          ))}
+        </ul>
+      </section>
       <section className="panel mb-5 grid gap-3 p-5 sm:p-6">
         <h2 className="text-xl font-black">{ar ? "أحدث الطلبات" : "Recent orders"}</h2>
         {!data.recentOrders.length ? <p className="text-sm text-muted">{orders.noOrders}</p> : <ul className="grid gap-2">
@@ -72,7 +127,7 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
       <section className="panel grid gap-4 p-5 sm:p-6">
         <h2 className="text-xl font-black">{ar ? "تفاصيل المتجر" : "Store details"}</h2>
         <dl className="grid min-w-0 gap-4 sm:grid-cols-2">
-          <div className="min-w-0 sm:col-span-2"><dt className="text-sm text-muted">{t.storeLink}</dt><dd><StorefrontLink path={publicPath} locale={locale} published={live} /></dd></div>
+          <div className="min-w-0 sm:col-span-2"><dt className="text-sm text-muted">{t.storeLink}</dt><dd><StorefrontLink path={publicPath} locale={locale} published={live} storeName={store.name} /></dd></div>
           <div><dt className="text-sm text-muted">{t.role}</dt><dd className="font-bold">{t[store.role]}</dd></div>
           <div><dt className="text-sm text-muted">{t.country}</dt><dd className="font-bold">{new Intl.DisplayNames(locale, { type: "region" }).of(store.country)}</dd></div>
           <div><dt className="text-sm text-muted">{t.currency}</dt><dd className="font-bold">{new Intl.DisplayNames(locale, { type: "currency" }).of(store.currency)} <bdi>{store.currency}</bdi></dd></div>
@@ -80,6 +135,7 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
         <div className="wajhati-workspace-quick-links flex-wrap gap-2">
           <Link className="button button-secondary" href={`${merchantPath}/categories`}><LayoutList size={18} aria-hidden="true" />{catalog.categories}</Link>
           <Link className="button button-secondary" href={`${merchantPath}/design`}><Palette size={18} aria-hidden="true" />{themeCopy[locale].design}</Link>
+          <Link className="button button-secondary" href={`${merchantPath}/contact`}><MessageSquare size={18} aria-hidden="true" />{orders.settingsLink}</Link>
           {store.role === "owner" && <Link className="button button-secondary" href={`${merchantPath}/billing`}>{billingCopy[locale].title}</Link>}
         </div>
         {!live && <p className="text-sm text-muted">{catalog.storeHidden}</p>}

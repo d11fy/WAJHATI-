@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { isLocale, otherLocale } from "../../src/lib/i18n";
+import { createQrMatrix } from "../../src/lib/qr";
 import { signUpInput, storeInput } from "../../src/lib/validation";
 import { digest, hashPassword, isSessionToken, randomSessionToken, verifyPassword } from "../../src/server/auth/crypto";
 
@@ -49,4 +50,16 @@ test("session tokens have the expected format and produce distinct fixed-length 
   assert.equal(isSessionToken(undefined), false);
   assert.match(digest(first), /^[0-9a-f]{64}$/);
   assert.notEqual(digest(first), digest(second));
+});
+
+test("QR matrix generator produces valid square matrices with finder patterns for storefront URLs", () => {
+  const matrix = createQrMatrix("https://waghte.vercel.app/ar/s/olive-house");
+  assert.ok(matrix.length >= 21 && matrix.length % 4 === 1);
+  assert.ok(matrix.every((row) => row.length === matrix.length));
+  // Top-left 7x7 finder pattern outer corners and center module are dark
+  assert.equal(matrix[0][0], true);
+  assert.equal(matrix[0][6], true);
+  assert.equal(matrix[6][0], true);
+  assert.equal(matrix[6][6], true);
+  assert.equal(matrix[3][3], true);
 });

@@ -1,8 +1,9 @@
 "use client";
 
+import { Copy } from "lucide-react";
 import { useActionState, useState } from "react";
 import { channels, orderMessage, type Contact } from "@/lib/checkout";
-import type { Currency } from "@/lib/catalog";
+import { formatPrice, type Currency } from "@/lib/catalog";
 import type { Locale } from "@/lib/i18n";
 import { orderCopy } from "@/lib/order-copy";
 import { submitContact, submitOrderChange } from "@/server/orders/actions";
@@ -58,4 +59,74 @@ export function OrderCommand({ locale, slug, reference, operation }: { locale: L
     <button className={`button ${operation === "confirm" ? "button-primary" : "button-secondary"}`} disabled={pending}>{pending ? t.busy : t[operation]}</button>
     {error && <p className="error" role="alert">{error === "acknowledge" ? t.acknowledge : t.conflict}</p>}
   </form>;
+}
+
+export function OrderReplyTemplates({ locale, reference, total, currency }: { locale: Locale; reference: string; total: number; currency: Currency }) {
+  const ar = locale === "ar";
+  const [kind, setKind] = useState<"confirm" | "shipping" | "followup">("confirm");
+  const [copied, setCopied] = useState(false);
+  const formattedTotal = formatPrice(total, currency, locale);
+
+  const templates = {
+    confirm: {
+      label: ar ? "تأكيد واستلام العنوان" : "Confirm & ask address",
+      text: ar
+        ? `مرحبًا بك! تم استلام وتأكيد طلبك رقم ${reference} بقيمة ${formattedTotal}.\nيرجى تزويدنا بالمدينة والعنوان التفصيلي ورقم الهاتف لإرسال الطلب.`
+        : `Hello! We received and confirmed your order ${reference} (Total: ${formattedTotal}).\nPlease share your delivery city, detailed address, and phone number so we can dispatch your order.`,
+    },
+    shipping: {
+      label: ar ? "إشعار خروج الطلب للتوصيل" : "Out for delivery",
+      text: ar
+        ? `مرحبًا بك! طلبك رقم ${reference} بقيمة ${formattedTotal} جاهز وخرج للتوصيل الآن. شكرًا لتسوقك معنا!`
+        : `Hello! Your order ${reference} (${formattedTotal}) is packed and out for delivery now. Thank you for shopping with us!`,
+    },
+    followup: {
+      label: ar ? "متابعة توفر العناصر" : "Availability follow-up",
+      text: ar
+        ? `مرحبًا بك! بخصوص طلبك رقم ${reference}، نود مراجعة تفاصيل بعض العناصر معك قبل التجهيز. هل تود المتابعة أو استبدال الصنف؟`
+        : `Hello! Regarding your order ${reference}, we would like to confirm item availability with you before preparation. Would you like to proceed or pick an alternative?`,
+    },
+  } as const;
+
+  async function copyReply() {
+    setCopied(false);
+    try {
+      await navigator.clipboard.writeText(templates[kind].text);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <section className="grid gap-3 rounded-xl border border-line bg-canvas p-4">
+      <div>
+        <h2 className="text-base font-black">{ar ? "قوالب رد سريعة للعميل (واتساب / إنستغرام)" : "Quick customer reply templates"}</h2>
+        <p className="text-xs text-muted">{ar ? "اختر القالب المناسب وانسخه بضغطة زر للرد على العميل في المحادثة." : "Select a template and copy it with one click to reply in your chat."}</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {(["confirm", "shipping", "followup"] as const).map((key) => (
+          <button
+            key={key}
+            type="button"
+            className="button button-secondary text-xs aria-pressed:bg-leaf"
+            aria-pressed={kind === key}
+            onClick={() => { setKind(key); setCopied(false); }}
+          >
+            {templates[key].label}
+          </button>
+        ))}
+      </div>
+      <pre className="whitespace-pre-wrap wrap-anywhere rounded-lg border border-line bg-white p-3 text-sm" dir={ar ? "rtl" : "ltr"}>
+        {templates[kind].text}
+      </pre>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" className="button button-secondary" onClick={() => void copyReply()}>
+          <Copy size={16} aria-hidden="true" />
+          {ar ? "نسخ الرد للعميل" : "Copy reply"}
+        </button>
+        {copied && <span role="status" className="text-sm font-semibold text-teal-700">{ar ? "تم نسخ الرد." : "Reply copied."}</span>}
+      </div>
+    </section>
+  );
 }
