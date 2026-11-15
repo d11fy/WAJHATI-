@@ -1,0 +1,53 @@
+name: Local-equivalent verification
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.24.3 git /repo --redact --no-banner
+
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql
+          npx playwright-core install --with-deps chromium
+          echo "DAR_PG_BIN=$(pg_config --bindir)" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE=$(node -p "require('playwright-core').chromium.executablePath()")" >> "$GITHUB_ENV"
+          echo "DAR_LOCAL_PG_PORT=55442" >> "$GITHUB_ENV"
+      - run: npm run local:verify
+      - run: npx drizzle-kit check
+      - run: npm audit --omit=dev --audit-level=moderate
+      - run: npm audit --audit-level=high
+
+  containers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - run: npm run ops:staging-env
+      - run: docker compose --project-name dar-staging --env-file .ops/staging/compose.env -f compose.yaml -f infra/compose.staging.yaml --profile operator --profile backup config --quiet
+      - run: docker compose --project-name dar-staging --env-file .ops/staging/compose.env -f compose.yaml -f infra/compose.staging.yaml build app pdf worker proxy stage-s3
+      - run: bash scripts/ops/staging-smoke.sh
+      - if: always()
+        run: docker compose --project-name dar-staging --env-file .ops/staging/compose.env -f compose.yaml -f infra/compose.staging.yaml down

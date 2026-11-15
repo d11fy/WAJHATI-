@@ -1,0 +1,118 @@
+@layer components {
+  .wajhati-marketing { background: white; }
+  .wajhati-market-width { width: min(100% - 2.5rem, 80rem); margin-inline: auto; }
+  .wajhati-market-header, .wajhati-market-hero, .wajhati-market-footer, .wajhati-market-closing { background: var(--wajhati-navy); color: white; }
+  .wajhati-market-header nav { min-height: 5.625rem; display: flex; align-items: center; gap: clamp(1rem, 3.5vw, 3rem); }
+  .wajhati-market-links, .wajhati-market-actions { display: flex; align-items: center; gap: clamp(0.75rem, 1.5vw, 1.5rem); font-size: 0.88rem; }
+  .wajhati-market-actions { margin-inline-start: auto; }
+  .wajhati-market-links a, .wajhati-market-actions a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+  .wajhati-market-links a:hover, .wajhati-market-links [aria-current="page"] { color: var(--wajhati-cyan); }
+  .wajhati-market-header :focus-visible, .wajhati-market-hero :focus-visible, .wajhati-market-footer :focus-visible, .wajhati-market-closing :focus-visible, .wajhati-plan-pro :focus-visible { outline-color: var(--wajhati-cyan); }
+  .wajhati-mobile-nav { display: none; }
+  .wajhati-market-hero { overflow: hidden; }
+  .wajhati-hero-inner { padding-block: clamp(2.75rem, 6vw, 5.5rem); }
+  .wajhati-home-hero { background: radial-gradient(ellipse at 50% 100%, #155268 0%, transparent 62%), var(--wajhati-navy); }
+  .wajhati-home-hero .wajhati-hero-inner { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; gap: clamp(2rem, 5vw, 5rem); min-height: 33rem; }
+  .wajhati-market-kicker { display: inline-flex; padding: 0.25rem 1.1rem; border-radius: 999px; color: var(--wajhati-cyan); background: #153749; font-size: 0.85rem; font-weight: 700; }
+  .wajhati-market-hero h1 { max-width: 15ch; margin-block: 0.65rem 1rem; font-size: clamp(2.2rem, 4.5vw, 4.15rem); line-height: 1.2; font-weight: 700; text-wrap: balance; }
+  .wajhati-market-hero:not(.wajhati-home-hero) h1 { max-width: 27ch; }
+  @media (min-width: 48rem) {
+    .wajhati-pricing-hero { color: var(--wajhati-navy); background: radial-gradient(circle at 14% 34%, #dff3f1 0 8rem, transparent 8.05rem), var(--wajhati-canvas); }
+    .wajhati-pricing-hero .wajhati-hero-copy { color: var(--color-muted); }
+  }
+  .wajhati-hero-copy { max-width: 45ch; color: #bed1db; line-height: 1.8; }
+  .wajhati-hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-start: 1.9rem; }
+  .wajhati-cta { background: var(--wajhati-cyan); color: var(--wajhati-navy); }
+  .wajhati-cta:hover { background: #79e2ff; }
+  .wajhati-hero-secondary { color: white; background: #16394a; border: 1px solid #2b5d6c; }
+  .wajhati-hero-secondary:hover { background: #205165; }
+  .wajhati-market-trial { margin-block-start: 1.25rem; color: #bed1db; font-size: 0.83rem; }
+
+  .wajhati-value-band, .wajhati-how { background: var(--wajhati-canvas); }
+  .wajhati-value-band ol, .wajhati-how ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  .wajhati-value-band li { min-height: 5.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; font-weight: 700; }
+  .wajhati-value-band span { font-family: Poppins, sans-serif; color: var(--wajhati-teal); font-size: 1.2rem; }
+  .wajhati-market-section { padding-block: clamp(2.75rem, 5vw, 5rem); }
+  .wajhati-market-section h2, .wajhati-market-closing h2 { font-weight: 700; font-size: clamp(1.7rem, 3.2vw, 2.65rem); line-height: 1.3; text-wrap: balance; }
+  .wajhati-market-section p { color: var(--color-muted); line-height: 1.7; }
+  .wajhati-market-section .wajhati-section-kicker { margin-block-end: 0.5rem; color: var(--wajhati-teal); font-size: 0.82rem; font-weight: 800; }
+  .wajhati-feature-band { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin-block-start: 2rem; }
+  .wajhati-feature-band article { display: flex; align-items: start; gap: 0.85rem; padding-block: 1.15rem; border-block-start: 2px solid var(--wajhati-border); }
+  .wajhati-feature-band h3 { font-size: 1.05rem; font-weight: 800; }
+  .wajhati-feature-band article p { margin-block-start: 0.3rem; font-size: 0.88rem; }
+  .wajhati-pricing-teaser { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.15rem; border-radius: var(--wajhati-radius-card); padding: clamp(1.2rem, 5vw, 3rem); background: #eaf3f1; }
+  .wajhati-pricing-teaser .button { background: white; }
+  .wajhati-market-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin-block-start: 2rem; }
+  .wajhati-market-grid article { min-height: 13.5rem; padding: clamp(1rem, 2.4vw, 2rem); }
+  .wajhati-market-grid article h3 { margin-block: 0.95rem 0.4rem; font-size: 1.12rem; font-weight: 700; }
+  .wajhati-market-grid article p, .wajhati-how li p { font-size: 0.9rem; }
+  .wajhati-how ol { margin-block-start: 1.8rem; }
+  .wajhati-how li { display: grid; justify-items: start; gap: 0.65rem; padding: 1rem; border-inline-start: 1px solid var(--wajhati-border); }
+  .wajhati-how li span { padding: 0.2rem 0.65rem; border-radius: 0.5rem; color: var(--wajhati-teal); background: #eaf3f1; font-weight: 700; }
+  .wajhati-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 1rem; max-width: 58rem; margin: 1.5rem auto 0; }
+  .wajhati-plan { display: grid; align-content: start; grid-template-rows: auto auto 1fr auto; gap: 1rem; padding: clamp(1rem, 3vw, 1.75rem); }
+  .wajhati-plan header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem; }
+  .wajhati-plan h3 { font: 700 1.5rem Poppins, sans-serif; }
+  .wajhati-plan-unavailable { background: var(--wajhati-canvas); border-style: dashed; grid-template-rows: auto auto; }
+  .wajhati-plan-unavailable .tag { background: white; color: var(--color-muted); }
+  .wajhati-plan-price { display: grid; gap: 0.25rem; }
+  .wajhati-plan-price > bdi { width: fit-content; color: var(--wajhati-navy); font-size: clamp(1.55rem, 4vw, 2.15rem); font-weight: 800; }
+  .wajhati-plan-pro .wajhati-plan-price > bdi { color: white; }
+  .wajhati-plan-price > span { font-size: 0.86rem; }
+  .wajhati-pricing-empty { display: grid; justify-items: start; gap: 0.85rem; max-width: 58rem; margin-inline: auto; padding: clamp(1.15rem, 4vw, 2.75rem); }
+  .wajhati-plan ul { display: grid; gap: 0.65rem; margin-block: 0.5rem 1rem; }
+  .wajhati-plan li { display: flex; gap: 0.65rem; align-items: center; }
+  .wajhati-plan-pro { color: white; background: var(--wajhati-navy); border-color: var(--wajhati-navy); }
+  .wajhati-plan-pro h3 { color: var(--wajhati-cyan); }
+  .wajhati-plan-pro p { color: #bed1db; }
+  .wajhati-market-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; padding: 1rem; max-width: 58rem; margin-inline: auto; }
+  .wajhati-market-filter > label, .wajhati-market-interval { flex: 1 1 12rem; min-width: 0; }
+  .wajhati-market-filter > p { flex-basis: 100%; font-size: 0.82rem; }
+  .wajhati-market-interval legend { font-size: 0.875rem; font-weight: 700; margin-block-end: 0.625rem; }
+  .wajhati-market-interval > div { min-height: 3.375rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0.25rem; border-radius: 0.8125rem; background: var(--wajhati-canvas); }
+  .wajhati-market-interval label { display: grid; place-items: center; cursor: pointer; border-radius: 0.65rem; font-size: 0.9rem; }
+  .wajhati-market-interval label:has(:checked) { color: white; background: var(--wajhati-teal); }
+  .wajhati-market-interval label:has(:focus-visible) { outline: 2px solid var(--wajhati-teal); outline-offset: 2px; }
+  .wajhati-questions { display: grid; gap: 0.9rem; max-width: 67.5rem; }
+  .wajhati-questions summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.3rem; cursor: pointer; font-weight: 700; }
+  .wajhati-questions details[open] { background: #ebf5f6; }
+  .wajhati-questions details[open] svg { transform: rotate(45deg); }
+  .wajhati-questions p { padding: 0 1.3rem 1.3rem; }
+  .wajhati-market-closing { padding-block: clamp(2rem, 5vw, 4rem); background: #102d40; }
+  .wajhati-market-closing a { margin-block-start: 1rem; }
+  .wajhati-market-footer > div { display: grid; grid-template-columns: 1fr auto auto; align-items: start; gap: 1.5rem; padding-block: 2rem; font-size: 0.85rem; }
+  .wajhati-market-footer p { color: #bed1db; margin-block-start: 0.35rem; }
+  .wajhati-market-footer nav { display: flex; flex-wrap: wrap; gap: 0.75rem 1.2rem; color: #bed1db; }
+
+  @media (min-width: 48rem) {
+    .wajhati-marketing:lang(ar) :is(.wajhati-market-grid, .wajhati-value-band ol, .wajhati-how ol) { direction: ltr; }
+    .wajhati-marketing:lang(ar) :is(.wajhati-market-grid article, .wajhati-plan, .wajhati-value-band li, .wajhati-how li) { direction: rtl; }
+  }
+
+  @media (max-width: 63.99rem) {
+    .wajhati-market-header nav { min-height: 4.625rem; justify-content: space-between; }
+    .wajhati-market-links, .wajhati-market-actions { display: none; }
+    .wajhati-mobile-nav { display: block; position: relative; z-index: 5; }
+    .wajhati-mobile-nav summary { display: grid; place-items: center; min-width: 2.75rem; min-height: 2.75rem; cursor: pointer; }
+    .wajhati-mobile-nav > div { position: absolute; inset-inline-end: 0; inset-block-start: 100%; display: grid; min-width: 12rem; padding: 0.5rem; border: 1px solid #2b5d6c; border-radius: 0.75rem; background: #153749; }
+    .wajhati-mobile-nav a { padding: 0.7rem; }
+  }
+  @media (max-width: 47.99rem) {
+    .wajhati-home-hero .wajhati-hero-inner, .wajhati-market-grid, .wajhati-feature-band, .wajhati-plans, .wajhati-how ol, .wajhati-market-footer > div { grid-template-columns: minmax(0, 1fr); }
+    .wajhati-home-hero .wajhati-hero-inner { min-height: auto; padding-block: 1.65rem 1.35rem; gap: 1.45rem; }
+    .wajhati-value-band { display: none; }
+    .wajhati-hero-actions .wajhati-cta, .wajhati-market-closing a { width: 100%; }
+    .wajhati-hero-actions .wajhati-hero-secondary { min-block-size: 2.75rem; }
+    .wajhati-hero-actions { margin-block-start: 1.15rem; }
+    .wajhati-feature-band { gap: 0; }
+    .wajhati-pricing-hero .wajhati-hero-inner { padding-block: 1.5rem 2rem; }
+    .wajhati-pricing-section { padding-block-start: 1.25rem; }
+    .wajhati-market-filter { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; }
+    .wajhati-market-filter > label, .wajhati-market-filter > p { grid-column: 1 / -1; }
+    .wajhati-market-filter > button { padding-inline: 0.75rem; }
+    .wajhati-market-grid article { min-height: 0; }
+    .wajhati-how li { grid-template-columns: auto 1fr; align-items: center; }
+    .wajhati-how li p { grid-column: 2; }
+    .wajhati-market-closing { display: block; }
+  }
+}

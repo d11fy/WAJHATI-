@@ -1,0 +1,14 @@
+node_modules
+.next
+.dar-local
+.git
+.github
+.env*
+.ops
+**/*.dump
+**/*.backup
+**/*.pem
+**/*.key
+*.log
+coverage
+tsconfig.tsbuildinfo

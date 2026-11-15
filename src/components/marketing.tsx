@@ -1,0 +1,131 @@
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Globe2, Menu, Plus } from "lucide-react";
+import bag from "@/assets/wajhati/bag.svg";
+import check from "@/assets/wajhati/check.svg";
+import credit from "@/assets/wajhati/credit.svg";
+import grid from "@/assets/wajhati/grid.svg";
+import message from "@/assets/wajhati/message.svg";
+import spark from "@/assets/wajhati/spark.svg";
+import { Brand } from "@/components/site-header";
+import { ProductPreview } from "@/components/product-preview";
+import { BrandStage } from "@/components/brand-stage";
+import { ThemeShowcase } from "@/components/theme-showcase";
+import { PublicPricing } from "@/components/public-pricing";
+import { registrationAvailable } from "@/lib/billing";
+import { copy } from "@/lib/copy";
+import { otherLocale, type Locale } from "@/lib/i18n";
+import { publicSignupEnabled } from "@/server/auth/mail";
+import { marketingBilling } from "@/server/billing/marketing";
+import { contactSettings } from "@/server/platform/contact";
+
+export type MarketingSection = "home" | "features" | "pricing" | "faq";
+type Search = { [key: string]: string | string[] | undefined };
+const icons = [bag, grid, spark, message, credit, check];
+const strings = {
+  ar: {
+    description: "منصة إنشاء المتاجر الإلكترونية", nav: ["المميزات", "كيف تعمل", "الباقات", "الأسئلة الشائعة"], menu: "القائمة",
+    headline: "متجرك الإلكتروني، هويتك أنت.", intro: "منصة واحدة لإنشاء متجرك، عرض منتجاتك، تخصيص هويتك، واستقبال طلبات العملاء عبر واتساب وإنستغرام.",
+    start: "ابدأ إنشاء متجرك", explore: "اكتشف المميزات", values: ["هوية احترافية", "إدارة المنتجات", "طلبات المحادثات", "منصة عربية"],
+    features: "كل أدوات تجارتك في مكان واحد", featuresNote: "صممت واجهتي لتسهّل البيع، لا لتضيف عليك خطوات جديدة.",
+    featuresHero: "منصة تساعدك على البيع", featuresIntro: "الوظائف الأساسية التي يحتاجها التاجر العربي، بواجهة عملية ومتناسقة.",
+    cards: [["أطلق متجرك بسهولة", "رابط خاص، هوية متكاملة وصفحات منتجات منظمة."], ["كتالوج بإدارة مريحة", "منتجات وأسعار وخيارات وصور من لوحة واحدة."], ["تحكّم في التصميم", "خصّص الشعار والألوان والبنرات والأقسام."], ["طلبات عبر المحادثات", "سلة واضحة تنقل ملخّص الطلب لوسيلة التواصل."], ["اشتراكات مرنة", "باقات شهرية وسنوية حيث تتوفر وسائل الدفع."], ["حماية لبيانات المتاجر", "صلاحيات مستقلة لكل متجر وتحقق عند مراجعة الدفع."]],
+    how: "من الفكرة لأول طلب بأربع خطوات", howNote: "ابدأ اليوم واترك كل التفاصيل في مكانها الصحيح.",
+    steps: [["إنشاء حساب", "ابدأ بإعداد متجرك."], ["إضافة المنتجات", "أضف صورًا وأسعارًا وخيارات."], ["اختيار التصميم", "اختر مظهرًا يعكس هويتك."], ["استقبال الطلبات", "شارك الرابط وابدأ التواصل."]],
+    plans: "باقات تكبر مع مشروعك", pricing: "باقات واضحة. إمكانيات حقيقية.", pricingNote: "اختر الخطة المناسبة لك. تختلف الأسعار وعروض الدفع حسب السوق.",
+    choose: "عرض الباقات", market: "السوق والعملة", interval: "دورة الفوترة", monthly: "شهريًا", yearly: "سنويًا", apply: "عرض الأسعار", noMarket: "لا تتوفر عروض منشورة لهذا الاختيار حاليًا.", pricingUnavailable: "تعذر تحميل الأسعار الآن. حاول مجددًا لاحقًا.",
+    products: "منتجًا", storage: "ميبيبايت للتخزين", analytics: "تحليلات موسعة", luxury: "تصميم Luxury Boutique", chat: "إدارة طلبات المحادثات",
+    faq: "كل إجابة تحتاجها، في مكان واضح", faqIntro: "تعرّف على كيفية إنشاء متجرك والبيع وإدارة اشتراكك.",
+    questions: [["هل أحتاج خبرة برمجية؟", "تدير متجرك والمنتجات والتصميم من لوحة التحكم."], ["كيف تصل طلبات العملاء إليّ؟", "يختار العميل قناة التواصل المفعّلة ويرسل ملخص سلة الطلب."], ["هل أستطيع تعديل المنتجات بعد نشرها؟", "نعم، يمكنك تعديلها من لوحة المتجر."], ["هل تختلف الميزات بين الشهري والسنوي؟", "الباقة الموحدة توفر الميزات نفسها في الدورتين. تعرض صفحة الأسعار المبلغ الكامل وحدود الاستخدام لكل عرض منشور."], ["هل أستطيع تغيير الباقة؟", "تراجع الخيارات المتاحة من صفحة الفوترة في متجرك."], ["هل يحتاج الزبون إلى حساب؟", "يمكن للعميل تصفح المتجر المنشور وإرسال الطلب عبر قناة التواصل المتاحة."], ["كيف يتم تفعيل الاشتراك أو تجديده؟", "يتواصل التاجر مع فريق واجهتي عبر واتساب الرسمي، ثم تفعّل إدارة المنصة الاشتراك للمتجر المحدد بعد تأكيد الدفعة."]],
+    closing: "متجرك يبدأ من واجهة واضحة.", accessClosed: "التسجيل العام غير متاح حاليًا. يمكن لأصحاب الحسابات تسجيل الدخول.",
+    localAccess: "إنشاء حساب تجريبي", localNote: "التسجيل التجريبي متاح على هذا الجهاز فقط.",
+    marketHelp: "تظهر الأسواق والعملات التي لديها عرض منشور وطريقة دفع نشطة. اختر دورة الفوترة لعرض السعر الكامل بتلك العملة.",
+    noOffers: "لا توجد باقات منشورة في الأسواق المتاحة حاليًا.", unavailable: "غير متاحة", available: "عرض منشور",
+    billingAccess: "سجّل الدخول لإدارة الاشتراك", workspaces: "مساحة عمل التاجر", quickGuide: "دليل البداية",
+  },
+  en: {
+    description: "A platform for creating online stores", nav: ["Features", "How it works", "Pricing", "FAQ"], menu: "Menu",
+    headline: "Your online store, your identity.", intro: "Create a store, showcase your products, customize your brand, and receive orders through WhatsApp and Instagram.",
+    start: "Start your store", explore: "Explore features", values: ["Your own brand", "Product management", "Chat orders", "Arabic-first"],
+    features: "Everything you need to run your store", featuresNote: "WAJHATI keeps selling straightforward.",
+    featuresHero: "A platform that helps you sell", featuresIntro: "The essentials for online merchants, in one consistent workspace.",
+    cards: [["Launch your store", "A dedicated link, your branding and organized product pages."], ["Manage your catalog", "Products, prices, options and photos in one dashboard."], ["Control your design", "Customize your logo, colors, banners and sections."], ["Orders through chat", "Send a clear cart summary to your selected contact channel."], ["Flexible subscriptions", "Monthly and annual offers where payment is available."], ["Protect store data", "Separate store permissions and verification for payment reviews."]],
+    how: "Four steps from idea to first order", howNote: "Get started and keep the details in one place.",
+    steps: [["Create an account", "Set up your store."], ["Add products", "Add photos, prices and options."], ["Choose a design", "Make the store feel like yours."], ["Receive orders", "Share your link and start a conversation."]],
+    plans: "Plans that grow with your store", pricing: "Clear plans. Real features.", pricingNote: "Choose a plan for your store. Prices and payment availability vary by market.",
+    choose: "See pricing", market: "Market and currency", interval: "Billing interval", monthly: "Monthly", yearly: "Yearly", apply: "Show prices", noMarket: "There are no published offers for this selection.", pricingUnavailable: "Prices are temporarily unavailable. Please check again later.",
+    products: "products", storage: "MiB of storage", analytics: "Enhanced analytics", luxury: "Luxury Boutique theme", chat: "Chat order management",
+    faq: "Find the answers you need", faqIntro: "Learn how to create a store, sell and manage your subscription.",
+    questions: [["Do I need to code?", "Manage your store, products and design in the dashboard."], ["How do customers send orders?", "Customers choose an enabled contact channel and send a cart summary."], ["Can I edit products after publishing?", "Yes, from the merchant dashboard."], ["Do monthly and annual features differ?", "The unified plan includes the same features in both intervals. Pricing shows the full amount and usage limits for each published offer."], ["Can I change plans?", "Review available options in your store’s billing area."], ["Do customers need accounts?", "Visitors can browse a published store and send orders through an enabled channel."], ["How is my subscription activated or renewed?", "Contact the WAJHATI team via official WhatsApp; platform administration activates the subscription for your selected store after payment confirmation."]],
+    closing: "Give your store a place of its own.", accessClosed: "Public registration is currently closed. Existing account holders can sign in.",
+    localAccess: "Create a test account", localNote: "Test registration is available on this device only.",
+    marketHelp: "Markets and currencies appear when a published offer and an active payment method are available. Choose a billing interval to see its full price in that currency.",
+    noOffers: "There are no published plans in the available markets at the moment.", unavailable: "Unavailable", available: "Published offer",
+    billingAccess: "Sign in to manage billing", workspaces: "Merchant workspace", quickGuide: "Getting started",
+  },
+} as const;
+
+export function marketingTitle(locale: Locale, section: Exclude<MarketingSection, "home">) {
+  return strings[locale].nav[{ features: 0, pricing: 2, faq: 3 }[section]];
+}
+
+export async function Marketing({ locale, section, search = {} }: { locale: Locale; section: MarketingSection; search?: Search }) {
+  const t = strings[locale];
+  const ar = locale === "ar";
+  const root = `/${locale}`;
+  const alt = otherLocale(locale);
+  const page = section === "home" ? "" : `/${section}`;
+  const localSignup = registrationAvailable(process.env.APP_ORIGIN, process.env.DAR_LOCAL_SIGNUP);
+  const publicSignup = (await publicSignupEnabled());
+  const signup = localSignup || publicSignup;
+  const action = `${root}/${signup ? "sign-up" : "sign-in"}`;
+  const actionLabel = localSignup ? t.localAccess : publicSignup ? t.start : copy[locale].signIn;
+  const accessNote = localSignup ? t.localNote : publicSignup ? null : t.accessClosed;
+  const links = [`${root}/features`, `${root}#how`, `${root}/pricing`, `${root}/faq`];
+  const billing = section === "pricing" || section === "home" ? await marketingBilling() : null;
+  const contact = section === "pricing" || section === "home" ? await contactSettings() : null;
+  const number = new Intl.NumberFormat(locale);
+  const nav = <><Link href={`${root}#themes`}>{ar ? "الثيمات" : "Themes"}</Link>{t.nav.map((label, index) => <Link key={label} href={links[index]} aria-current={links[index] === root + page ? "page" : undefined}>{label}</Link>)}</>;
+  return <div className="wajhati-platform wajhati-marketing">
+    <a className="sr-only focus:not-sr-only" href="#content">{ar ? "انتقل إلى المحتوى" : "Skip to content"}</a>
+    <header className="wajhati-market-header"><nav className="wajhati-market-width" aria-label={t.menu}>
+      <Brand locale={locale} /><div className="wajhati-market-links">{nav}</div>
+      <div className="wajhati-market-actions"><Link href={`/${alt}${page}`} lang={alt} hrefLang={alt} aria-label={copy[locale].switchLanguage}><Globe2 size={18} aria-hidden="true" /></Link>
+        <Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link>{signup && <Link href={action} className="button wajhati-cta">{actionLabel}</Link>}
+      </div>
+      <details className="wajhati-mobile-nav"><summary aria-label={t.menu}><Menu size={23} aria-hidden="true" /></summary><div>{nav}<Link href={`/${alt}${page}`} lang={alt} hrefLang={alt}>{copy[locale].switchLanguage}</Link><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link></div></details>
+    </nav></header>
+    <main id="content">
+      <section className={`wajhati-market-hero wajhati-${section}-hero`}>
+        <div className="wajhati-market-width wajhati-hero-inner">
+          <div>{section === "home" && <p className="wajhati-market-kicker">{t.description}</p>}
+            <h1>{section === "home" ? <>{ar ? "تجارتك تستاهل" : "Your ambition."}<br /><em>{ar ? "واجهة تليق فيها." : "Your signature store."}</em></> : section === "features" ? t.featuresHero : section === "pricing" ? t.pricing : t.faq}</h1>
+            <p className="wajhati-hero-copy">{section === "home" ? t.intro : section === "features" ? t.featuresIntro : section === "pricing" ? t.pricingNote : t.faqIntro}</p>
+            {(section === "home" || section === "features") && <div className="wajhati-hero-actions"><Link href={action} className="button wajhati-cta">{actionLabel}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link>{section === "home" && <a href="#themes" className="button wajhati-hero-secondary">{ar ? "استكشف التصاميم" : "Explore the designs"}</a>}</div>}
+            {(section === "home" || section === "features") && accessNote && <p className="wajhati-market-trial">{accessNote}</p>}
+            {section === "home" && publicSignup && billing?.trialDays && <p className="wajhati-market-trial">{ar ? `تجربة لمدة ${number.format(billing.trialDays)} أيام للحسابات المؤهلة` : `${number.format(billing.trialDays)}-day trial for eligible accounts`}</p>}
+          </div>
+          {section === "home" && <BrandStage locale={locale} />}
+        </div>
+      </section>
+      {section === "home" && <div className="wajhati-value-band"><ol className="wajhati-market-width">{t.values.map((value, index) => <li key={value}><span>{String(index + 1).padStart(2, "0")}</span>{value}</li>)}</ol></div>}
+      {section === "home" && <ThemeShowcase locale={locale} />}
+      {(section === "home" || section === "features") && <>
+        <section className="wajhati-market-width wajhati-market-section" aria-label={t.features}>
+          {section === "home" && <div className="premium-workspace-intro"><div><p className="wajhati-section-kicker">{ar ? "خلف كل متجر جميل، إدارة أبسط" : "BEHIND EVERY GREAT STORE"}</p><h2>{t.features}</h2><p>{t.featuresNote}</p><Link href={`${root}/features`} className="premium-text-link">{t.explore}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link></div><ProductPreview locale={locale} /></div>}
+          <div className={section === "home" ? "wajhati-feature-band" : "wajhati-market-grid"}>{(section === "home" ? [1, 3, 2] : [0, 1, 2, 3, 4, 5]).map((i) => <article className={section === "home" ? undefined : "panel"} key={i}><span className="icon-tile"><Image src={icons[i]} alt="" unoptimized /></span><div><h3>{t.cards[i][0]}</h3><p>{t.cards[i][1]}</p></div></article>)}</div>
+        </section>
+        <section id="how" className="wajhati-how"><div className="wajhati-market-width wajhati-market-section"><p className="wajhati-section-kicker">{t.quickGuide}</p><h2>{t.how}</h2><p>{t.howNote}</p>
+          <ol>{t.steps.map(([title, note], index) => <li key={title}><span>{number.format(index + 1)}</span><strong>{index === 0 && !signup ? copy[locale].signIn : title}</strong><p>{note}</p></li>)}</ol>
+        </div></section>
+      </>}
+      {(section === "home" || section === "pricing") && <PublicPricing locale={locale} catalog={billing?.catalog ?? null} compact={section === "home"} requestedMarket={typeof search.market === "string" ? search.market : undefined} whatsapp={contact?.whatsapp} trialDays={billing?.trialDays} />}
+      {section === "home" && <section className="premium-setup wajhati-market-width"><span className="icon-tile"><Image src={spark} alt="" unoptimized /></span><div><h2>{ar ? "تفضّل أن نجهّز المتجر معك؟" : "Prefer a helping hand with setup?"}</h2><p>{ar ? "أنشئ متجرك بنفسك، أو اطلب خدمة التجهيز من لوحة متجرك عند توفرها. خدمة التجهيز منفصلة عن الاشتراك." : "Build it yourself, or request setup assistance from your store dashboard when available. Setup is separate from the subscription."}</p></div><Link href={`${root}/sign-in`} className="button button-secondary">{ar ? "الدخول إلى لوحة المتجر" : "Open your dashboard"}</Link></section>}
+      {(section === "faq" || section === "home") && <section className="wajhati-market-width wajhati-market-section wajhati-questions" aria-label={t.nav[3]}>{section === "home" && <><p className="wajhati-section-kicker">{t.nav[3]}</p><h2>{t.faq}</h2></>}{(section === "home" ? t.questions.slice(0, 4) : t.questions).map(([question, answer], index) => <details key={question} className="panel" open={index === 0}><summary>{question}<Plus size={20} aria-hidden="true" /></summary><p>{answer}</p></details>)}</section>}
+      {section === "home" && <section className="wajhati-market-closing"><div className="wajhati-market-width"><h2>{t.closing}</h2><Link className="button wajhati-cta" href={action}>{actionLabel}</Link></div></section>}
+    </main>
+    <footer className="wajhati-market-footer"><div className="wajhati-market-width"><div><Brand locale={locale} /><p>{t.description}</p></div>
+      <nav aria-label={t.menu}>{nav}</nav><div><strong>{t.workspaces}</strong><p><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link></p></div>
+    </div></footer>
+  </div>;
+}

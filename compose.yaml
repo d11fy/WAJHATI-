@@ -1,0 +1,158 @@
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+x-restricted: &restricted
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: unless-stopped
+  stop_grace_period: 25s
+  logging: *logging
+
+services:
+  proxy:
+    image: ${DAR_PROXY_IMAGE:-dar-market-proxy:local}
+    build: { context: ., target: proxy }
+    <<: *restricted
+    user: "10001:10001"
+    entrypoint: ["sh", "-c", "exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"]
+    environment:
+      DAR_HOST: ${DAR_HOST:-localhost}
+      DAR_ORIGIN: ${DAR_ORIGIN:-https://localhost:8443}
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /config
+    ports:
+      - "${EDGE_BIND:-127.0.0.1}:${EDGE_HTTP_PORT:-8080}:8080"
+      - "${EDGE_BIND:-127.0.0.1}:${EDGE_HTTPS_PORT:-8443}:8443"
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      - proxy_data:/data
+      - proxy_config:/config
+    tmpfs: [/tmp:size=16m]
+    depends_on: [app]
+    networks: [edge]
+    mem_limit: 192m
+    cpus: 0.5
+    pids_limit: 96
+
+  app:
+    <<: *restricted
+    image: ${DAR_IMAGE:-dar-market:local}
+    build: { context: ., target: app }
+    env_file: "${DAR_APP_ENV:-.ops/staging/app.env}"
+    environment:
+      PUBLIC_SIGNUP_ENABLED: "false"
+      DAR_LOCAL_SIGNUP: "false"
+      DAR_LOCAL_PDF: "false"
+      PAYMENT_RENDERER_SOCKET: /run/dar-pdf/worker.sock
+      TRUSTED_CLIENT_IP_HEADER: x-real-ip
+    volumes:
+      - pdf_socket:/run/dar-pdf:ro
+      - mail_outbox:/mail
+    tmpfs:
+      - "/tmp:size=64m,uid=10001,gid=10001"
+      - "/app/.next/cache:size=64m,uid=10001,gid=10001"
+    depends_on:
+      db: { condition: service_healthy }
+      pdf: { condition: service_healthy }
+    networks: [edge, data]
+    mem_limit: 768m
+    cpus: 1.5
+    pids_limit: 128
+
+  pdf:
+    <<: *restricted
+    image: ${DAR_PDF_IMAGE:-dar-market-pdf:local}
+    build: { context: ., target: pdf }
+    network_mode: none
+    environment:
+      PAYMENT_RENDERER_SOCKET: /run/dar-pdf/worker.sock
+    volumes: [pdf_socket:/run/dar-pdf]
+    tmpfs: ["/tmp:size=16m,noexec,nosuid,nodev"]
+    healthcheck:
+      test: ["CMD", "node", "scripts/ops/pdf-worker.mjs", "--health"]
+      interval: 20s
+      timeout: 3s
+    mem_limit: 384m
+    cpus: 0.75
+    pids_limit: 48
+
+  db:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    logging: *logging
+    env_file: "${DAR_DB_ENV:-.ops/staging/db.env}"
+    command: ["postgres","-c","max_connections=55","-c","shared_buffers=128MB","-c","log_parameter_max_length=0","-c","log_parameter_max_length_on_error=0"]
+    networks: [data]
+    volumes: [db_data:/var/lib/postgresql]
+    shm_size: 192m
+    mem_limit: 1024m
+    cpus: 1
+    pids_limit: 128
+    stop_grace_period: 45s
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 4s
+      retries: 10
+
+  worker:
+    <<: *restricted
+    image: ${DAR_OPS_IMAGE:-dar-market-ops:local}
+    build: { context: ., target: operations }
+    env_file: "${DAR_WORKER_ENV:-.ops/staging/worker.env}"
+    volumes: [mail_outbox:/mail]
+    tmpfs: ["/tmp:size=48m,uid=10001,gid=10001"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [edge, data]
+    mem_limit: 384m
+    cpus: 0.5
+    pids_limit: 80
+    healthcheck:
+      test: ["CMD","node","scripts/ops/scheduler.mjs","--health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 45s
+
+  operator:
+    <<: *restricted
+    restart: "no"
+    profiles: [operator]
+    image: ${DAR_OPS_IMAGE:-dar-market-ops:local}
+    build: { context: ., target: operations }
+    env_file: "${DAR_OPERATOR_ENV:-.ops/staging/operator.env}"
+    command: ["node","node_modules/drizzle-kit/bin.cjs","migrate"]
+    networks: [data]
+    tmpfs: ["/tmp:size=48m,uid=10001,gid=10001"]
+    mem_limit: 384m
+    pids_limit: 80
+
+  backup:
+    <<: *restricted
+    restart: "no"
+    profiles: [backup]
+    image: ${DAR_OPS_IMAGE:-dar-market-ops:local}
+    build: { context: ., target: operations }
+    env_file: "${DAR_BACKUP_ENV:-.ops/staging/backup.env}"
+    command: ["node","scripts/ops/backup.mjs","backup"]
+    networks: [edge,data]
+    tmpfs: ["/tmp:size=16m,uid=10001,gid=10001"]
+    volumes: [backup_spool:/backups]
+    mem_limit: 384m
+    cpus: 0.5
+    pids_limit: 64
+
+networks:
+  edge: {}
+  data: { internal: true }
+
+volumes:
+  db_data: {}
+  proxy_data: {}
+  proxy_config: {}
+  pdf_socket: {}
+  mail_outbox: {}
+  backup_spool: {}

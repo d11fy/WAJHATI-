@@ -1,0 +1,12 @@
+/node_modules/
+/.next/
+/out/
+/.env*
+!/.env.example
+*.tsbuildinfo
+next-env.d.ts
+*.log
+/coverage/
+/.s3-local/
+/.dar-local/
+/.ops/

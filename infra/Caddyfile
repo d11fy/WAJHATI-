@@ -1,0 +1,30 @@
+{
+	http_port 8080
+	https_port 8443
+	admin localhost:2019
+	auto_https disable_redirects
+	skip_install_trust
+	metrics
+}
+
+http://{$DAR_HOST} {
+	redir {$DAR_ORIGIN}{uri} 308
+}
+
+https://{$DAR_HOST} {
+	@internal_metrics path /api/metrics
+	respond @internal_metrics 404
+	request_body {
+		max_size 7MB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-X-Powered-By
+	}
+	reverse_proxy app:3000 {
+		header_up -X-Real-IP
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-Host {hostport}
+		header_up X-Forwarded-Proto https
+	}
+}

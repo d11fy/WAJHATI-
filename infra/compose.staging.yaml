@@ -1,0 +1,22 @@
+services:
+  stage-s3:
+    image: dar-market-stage-storage:local
+    build: { context: ., target: staging-storage }
+    user: "10001:10001"
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [data]
+    volumes: [stage_storage:/storage]
+    tmpfs: [/tmp:size=16m]
+    mem_limit: 192m
+    cpus: 0.5
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD","node","-e","fetch('http://127.0.0.1:4569/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+
+volumes:
+  stage_storage: {}

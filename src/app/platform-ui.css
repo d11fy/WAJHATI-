@@ -1,0 +1,87 @@
+/* Platform styles are opt-in. Public merchant storefronts and their previews keep their own tokens. */
+@layer components {
+  .wajhati-brand-mark {
+    position: relative;
+    display: inline-block;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    flex: none;
+    overflow: hidden;
+    border-radius: 0.65rem;
+    background: #052533;
+  }
+
+  .wajhati-brand-artwork {
+    position: absolute;
+    width: 272%;
+    height: auto;
+    max-width: none;
+    left: -86%;
+    top: -34%;
+  }
+
+  .wajhati-platform {
+    --wajhati-navy: #0b1f33;
+    --wajhati-teal: #0f766e;
+    --wajhati-cyan: #22c7f2;
+    --wajhati-gold: #d6a85f;
+    --wajhati-canvas: #f3f6f8;
+    --wajhati-white: #fff;
+    --wajhati-text: #10222e;
+    --wajhati-secondary: #667784;
+    --wajhati-border: #d9e2e8;
+    --wajhati-radius-control: 0.75rem;
+    --wajhati-radius-card: 1.0625rem;
+    --wajhati-elevation: 0 1px 3px rgb(11 31 51 / 5%);
+    --font-sans: "Poppins", "Cairo Variable", Arial, sans-serif;
+    --color-ink: var(--wajhati-text);
+    --color-muted: color-mix(in srgb, var(--wajhati-secondary) 90%, var(--wajhati-navy));
+    --color-brand: var(--wajhati-teal);
+    --color-brand-dark: #0a5c56;
+    --color-leaf: #eaf3f1;
+    --color-canvas: var(--wajhati-canvas);
+    --color-line: var(--wajhati-border);
+    --color-sand: color-mix(in srgb, var(--wajhati-gold) 23%, white);
+    min-block-size: 100dvh;
+    background: var(--wajhati-canvas);
+    color: var(--wajhati-text);
+    font-family: var(--font-sans);
+  }
+
+  .wajhati-platform:lang(ar) { --font-sans: "Cairo Variable", "Poppins", Arial, sans-serif; }
+
+  .wajhati-platform .button {
+    min-block-size: 3.25rem;
+    border-radius: var(--wajhati-radius-control);
+    padding-inline: 1.375rem;
+    font-size: 0.9375rem;
+  }
+
+  .wajhati-platform .button-secondary { background: var(--color-leaf); }
+  .wajhati-platform .button-secondary:hover { background: #dcece8; }
+  .wajhati-platform .panel { border-radius: var(--wajhati-radius-card); box-shadow: var(--wajhati-elevation); }
+  .wajhati-platform .field { gap: 0.625rem; }
+  .wajhati-platform .control { min-block-size: 3.375rem; border-radius: 0.8125rem; padding-inline: 0.875rem; }
+  .wajhati-platform .tag { background: #ebf5f6; color: var(--wajhati-teal); font-size: 0.8125rem; }
+  .wajhati-platform :focus-visible { outline-color: var(--wajhati-teal); }
+
+  .wajhati-product-preview {
+    min-width: 0;
+    padding: 0.55rem;
+    border: 1px solid rgb(117 218 237 / 36%);
+    border-radius: 1.15rem;
+    background: #102c40;
+    box-shadow: 0 1.5rem 4rem rgb(3 15 30 / 38%);
+  }
+  .wajhati-product-preview figcaption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem; padding: 0.55rem 0.55rem 0.75rem; color: #e1f2f5; font-size: 0.82rem; font-weight: 700; }
+  .wajhati-preview-dots { display: flex; gap: 0.25rem; }
+  .wajhati-preview-dots i { width: 0.38rem; height: 0.38rem; border-radius: 50%; background: var(--wajhati-cyan); }
+  .wajhati-preview-dots i:nth-child(2) { background: var(--wajhati-gold); }
+  .wajhati-preview-dots i:nth-child(3) { background: #a6d8d0; }
+  .wajhati-product-preview img { display: block; width: 100%; height: auto; border-radius: 0.65rem; }
+  .wajhati-product-preview p { padding: 0.65rem 0.55rem 0.15rem; color: #c1d6dd; font-size: 0.72rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wajhati-platform .button { transition: none; }
+  }
+}

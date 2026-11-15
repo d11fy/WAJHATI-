@@ -1,0 +1,7 @@
+{
+  "plans": [{ "code": "pro", "version": 2, "name": "WAJHATI", "maxProducts": 200, "storageMiB": 12288, "analytics": "enhanced", "luxury": true, "premium": true }],
+  "prices": [
+    { "id": "a83ac948-ea81-421c-a3d0-1ad8272ad001", "plan": "pro", "version": 2, "country": "PS", "currency": "ILS", "interval": "monthly", "amount": 3500, "active": true },
+    { "id": "a83ac948-ea81-421c-a3d0-1ad8272ad002", "plan": "pro", "version": 2, "country": "PS", "currency": "ILS", "interval": "yearly", "amount": 24500, "active": true }
+  ]
+}
