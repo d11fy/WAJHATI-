@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { MerchantWorkspace } from "@/components/workspace-frame";
 import { EmailChange, IdentityRequest } from "@/components/identity-forms";
 import { readSessionToken, requireUser } from "@/server/auth/session";
 import { isVerifiedEmail } from "@/server/auth/repository";
 import { routeLocale } from "@/server/locale";
+
+export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
 
 export default async function Account({ params }: PageProps<"/[locale]/account">) {
   const locale = await routeLocale(params);

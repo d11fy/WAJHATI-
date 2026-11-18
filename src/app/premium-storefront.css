@@ -11,7 +11,8 @@
 .store-family .family-hero-copy > p:not(.family-kicker) { max-width: 44ch; line-height: 1.9; }
 .store-family .family-kicker { letter-spacing: 0.04em; }
 .store-family .family-categories { border: 1px solid var(--store-line); }
-.store-family .family-categories .store-category-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+/* auto-fill, not auto-fit: with one or two categories auto-fit collapses the empty tracks and stretches the tile across the whole row. */
+.store-family .family-categories .store-category-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); }
 .store-family .family-categories .store-picture { aspect-ratio: 2.4; max-height: 9rem; }
 .store-family .family-categories .store-category-grid li > * { padding: 0.65rem; }
 .store-family .store-tile { border-color: color-mix(in srgb, var(--store-line) 60%, transparent); }

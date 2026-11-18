@@ -134,6 +134,20 @@ async function provision(password) {
   } finally { await admin.end(); }
 }
 
+// The verification database persists between runs and its fixture accounts never receive real mail. Unsent
+// notifications from earlier runs age past the 20-hour abandonment window, which makes the maintenance
+// worker (correctly) exit 1 and aborts the rest of the pipeline. Retire them before the run starts so the
+// maintenance check at the end judges only this run's own notifications.
+async function retireStaleFixtureNotifications(password) {
+  assert.equal(dbName, "dar_local_verify_billing", "Fixture reset only applies to the disposable verification database.");
+  const client = new pg.Client({ connectionString: connection(password, "dar_owner"), connectionTimeoutMillis: 5_000 });
+  await client.connect();
+  try {
+    const { rowCount } = await client.query("update public.ops_notifications set failed_at = now(), lease = null where sent_at is null and failed_at is null");
+    console.log(`Verification fixture reset: ${rowCount} unsent notification(s) from earlier runs retired.`);
+  } finally { await client.end(); }
+}
+
 async function checkConnections(password, s3) {
   const runtime = new pg.Client({ connectionString: connection(password, "dar_runtime") });
   await runtime.connect();
@@ -286,6 +300,7 @@ async function main() {
       }
       return await complete(app);
     }
+    if (mode === "verify") await retireStaleFixtureNotifications(password);
     const mkdirRetryFile = join(local, "mkdir-retry.cjs").replace(/\\/g, "/");
     if (win) {
       writeFileSync(mkdirRetryFile, `const fs=require("node:fs"),fsp=require("node:fs/promises"),s=fs.mkdirSync.bind(fs),p=fsp.mkdir.bind(fsp);

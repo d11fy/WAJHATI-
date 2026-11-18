@@ -1,9 +1,11 @@
 import { connection } from "next/server";
-import { Marketing, marketingTitle } from "@/components/marketing";
+import { Marketing, marketingDescription, marketingTitle } from "@/components/marketing";
+import { marketingMetadata } from "@/lib/seo";
 import { routeLocale } from "@/server/locale";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/faq">) {
-  return { title: marketingTitle(await routeLocale(params), "faq") };
+  const locale = await routeLocale(params);
+  return marketingMetadata(locale, "/faq", marketingTitle(locale, "faq"), marketingDescription(locale, "faq"));
 }
 
 export default async function FAQ({ params }: PageProps<"/[locale]/faq">) {

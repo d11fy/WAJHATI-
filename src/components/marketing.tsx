@@ -104,6 +104,12 @@ export function marketingTitle(locale: Locale, section: Exclude<MarketingSection
   return strings[locale].nav[{ features: 0, pricing: 2, faq: 3 }[section]];
 }
 
+/** Page descriptions reuse the approved on-page copy so metadata never claims more than the page does. */
+export function marketingDescription(locale: Locale, section: MarketingSection) {
+  const t = strings[locale];
+  return { home: t.intro, features: t.featuresIntro, pricing: t.pricingNote, faq: t.faqIntro }[section];
+}
+
 export async function Marketing({ locale, section, search = {} }: { locale: Locale; section: MarketingSection; search?: Search }) {
   const t = strings[locale];
   const ar = locale === "ar";

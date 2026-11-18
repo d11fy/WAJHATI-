@@ -161,6 +161,18 @@ test("merchant customizes two layouts, previews privately and publishes with des
   await owner.getByRole("button", { name: "البن والقهوة", exact: true }).click();
   await submitAndWait(owner, "حفظ المسودة", "saved");
 
+  // Unsaved edits raise the browser's leave-page guard and can be discarded back to the saved draft.
+  const unloadGuarded = () => owner.evaluate(() => { const event = new Event("beforeunload", { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; });
+  const discard = owner.getByRole("button", { name: "تجاهل التعديلات غير المحفوظة" });
+  const savedTitle = await owner.locator('[name="titleAr"]').inputValue();
+  assert.equal(await unloadGuarded(), false, "A saved draft must not warn before leaving");
+  await owner.locator('[name="titleAr"]').fill(`${savedTitle} (غير محفوظ)`);
+  assert.equal(await unloadGuarded(), true, "Unsaved edits must warn before leaving");
+  await discard.click();
+  assert.equal(await owner.locator('[name="titleAr"]').inputValue(), savedTitle);
+  assert.equal(await discard.count(), 0);
+  assert.equal(await unloadGuarded(), false, "Discarding must lift the leave-page guard");
+
   const iframe = owner.frameLocator("iframe");
   await iframe.getByRole("heading", { level: 1, name: titles.minimal.ar }).waitFor();
   assert.equal(await iframe.locator(".wajhati-platform").count(), 0);
@@ -168,6 +180,7 @@ test("merchant customizes two layouts, previews privately and publishes with des
   await owner.getByRole("button", { name: "كمبيوتر", exact: true }).click();
   assert.equal(await iframe.locator("html").evaluate(() => window.innerWidth), 1200);
   if (directory) await owner.screenshot({ path: shot("store-designer-desktop"), animations: "disabled" });
+  if (directory) await owner.getByRole("group", { name: "اختيار صورة · بنر الصفحة الرئيسية" }).screenshot({ path: shot("store-designer-banner-picker"), animations: "disabled" });
   assert.equal((await visitor.request.get(preview, { maxRedirects: 0 })).status(), 307);
   await signup(outsider, base, `${slug}-outsider@example.test`);
   assert.equal((await outsider.request.get(preview)).status(), 404);

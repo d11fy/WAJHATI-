@@ -97,10 +97,15 @@ function AssetPicker({ locale, slug, kind, assets, selected, onSelect, onUpload,
   return <fieldset className="grid gap-2 rounded-xl border border-line p-3" aria-busy={busy}>
     <legend className="px-1 text-sm font-bold">{t[kind]}</legend>
     {selected && <div className="relative h-24 overflow-hidden rounded-lg bg-leaf"><Image src={designAssetPath(slug, selected, true)} alt={t[kind]} fill unoptimized className="object-contain" /></div>}
-    <select className="control" aria-label={`${t.selectAsset} · ${t[kind]}`} value={selected ?? ""} disabled={busy} onChange={(event) => { setError(null); onSelect(event.target.value || null); }}>
-      <option value="">{t.noAsset}</option>
-      {options.map((option, index) => <option key={option.id} value={option.id}>{t[kind]} {index + 1}</option>)}
-    </select>
+    <div role="group" aria-label={`${t.selectAsset} · ${t[kind]}`} className="grid max-h-56 grid-cols-3 gap-2 overflow-auto p-0.5 sm:grid-cols-4">
+      <button type="button" aria-pressed={selected === null} disabled={busy} onClick={() => { setError(null); onSelect(null); }}
+        className="grid min-h-16 place-items-center rounded-lg border border-line p-1 text-center text-xs font-bold text-muted aria-pressed:border-brand aria-pressed:bg-leaf aria-pressed:text-ink aria-pressed:ring-2 aria-pressed:ring-brand">{t.noAsset}</button>
+      {options.map((option, index) => <button key={option.id} type="button" aria-pressed={selected === option.id} disabled={busy}
+        aria-label={`${t[kind]} ${index + 1}`} onClick={() => { setError(null); onSelect(option.id); }}
+        className="relative aspect-square overflow-hidden rounded-lg border border-line bg-leaf aria-pressed:border-brand aria-pressed:ring-2 aria-pressed:ring-brand">
+        <Image src={designAssetPath(slug, option.id, true)} alt="" fill unoptimized sizes="96px" className="object-contain p-1" />
+      </button>)}
+    </div>
     <label className="field">
       <span className="inline-flex items-center gap-2"><ImagePlus size={16} aria-hidden="true" />{busy ? t.uploading : t.upload}</span>
       <input className="control" type="file" name={kind} aria-label={`${t.upload} · ${t[kind]}`} accept="image/jpeg,image/png,image/webp" disabled={busy}
@@ -184,6 +189,15 @@ export function Designer({ locale, slug, initial, revision, publishedRevision, h
   const content = family ? config.familyContent?.[family] ?? emptyFamilyContent : null;
   const ar = locale === "ar";
 
+  // Warn before the browser discards edits (tab close, reload, external navigation). A successful save
+  // replaces `initial`, so the guard lifts itself without special handling.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
   function changeFamilyContent(key: keyof FamilyContent, value: string) {
     if (!family) return;
     setConfig((current) => ({
@@ -210,7 +224,10 @@ export function Designer({ locale, slug, initial, revision, publishedRevision, h
       <DesignCommand locale={locale} slug={slug} revision={revision} operation="restore" disabled={pending || publishedRevision === null} />
       {owner && hasPrevious && <DesignCommand locale={locale} slug={slug} revision={revision} operation="restorePrevious" disabled={pending} />}
     </div>
-    {dirty && <p className="mb-3 text-sm text-muted" role="status">{t.unsaved}</p>}
+    {dirty && <div className="mb-3 flex flex-wrap items-center gap-3" role="status">
+      <p className="text-sm text-muted">{t.unsaved}</p>
+      <button type="button" className="button button-secondary min-h-9 px-3" disabled={pending} onClick={() => setConfig(initial)}>{t.discard}</button>
+    </div>}
     {!owner && <p className="mb-3 text-sm text-muted">{t.ownerOnly}</p>}
     {error && <p className="error mb-4" role="alert">{t[error]}</p>}
     <div className="wajhati-designer-layout">
