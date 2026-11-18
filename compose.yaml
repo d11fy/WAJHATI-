@@ -103,7 +103,6 @@ services:
     image: ${DAR_OPS_IMAGE:-dar-market-ops:local}
     build: { context: ., target: operations }
     env_file: "${DAR_WORKER_ENV:-.ops/staging/worker.env}"
-    volumes: [mail_outbox:/mail]
     tmpfs: ["/tmp:size=48m,uid=10001,gid=10001"]
     depends_on:
       db: { condition: service_healthy }
@@ -113,6 +112,28 @@ services:
     pids_limit: 80
     healthcheck:
       test: ["CMD","node","scripts/ops/scheduler.mjs","--health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 45s
+
+  # Sends the queued notification email (trial, due, activated, expired, review). Its own database login and the SMTP key;
+  # no storage credentials and no other database access. The worker above deliberately cannot do this.
+  mailer:
+    <<: *restricted
+    image: ${DAR_OPS_IMAGE:-dar-market-ops:local}
+    build: { context: ., target: operations }
+    env_file: "${DAR_MAILER_ENV:-.ops/staging/mailer.env}"
+    command: ["node","scripts/ops/scheduler.mjs","--mailer"]
+    volumes: [mail_outbox:/mail]
+    tmpfs: ["/tmp:size=32m,uid=10001,gid=10001"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [edge, data]
+    mem_limit: 256m
+    cpus: 0.25
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD","node","scripts/ops/scheduler.mjs","--mailer","--health"]
       interval: 30s
       timeout: 3s
       start_period: 45s
@@ -137,13 +158,30 @@ services:
     image: ${DAR_OPS_IMAGE:-dar-market-ops:local}
     build: { context: ., target: operations }
     env_file: "${DAR_BACKUP_ENV:-.ops/staging/backup.env}"
-    command: ["node","scripts/ops/backup.mjs","backup"]
+    # "all" backs up the database, the media bucket (when BACKUP_SOURCE_BUCKET is set) and a configuration manifest, then pings the optional heartbeat URL.
+    command: ["node","scripts/ops/backup.mjs","all"]
     networks: [edge,data]
     tmpfs: ["/tmp:size=16m,uid=10001,gid=10001"]
     volumes: [backup_spool:/backups]
     mem_limit: 384m
     cpus: 0.5
     pids_limit: 64
+
+  # Hourly freshness check: alerts (webhook and non-zero exit) when the newest backup manifest is older than BACKUP_MAX_AGE_HOURS.
+  backup-check:
+    <<: *restricted
+    restart: "no"
+    profiles: [backup]
+    image: ${DAR_OPS_IMAGE:-dar-market-ops:local}
+    build: { context: ., target: operations }
+    env_file: "${DAR_BACKUP_CHECK_ENV:-.ops/staging/backup.env}"
+    command: ["node","scripts/ops/backup.mjs","check"]
+    networks: [edge,data]
+    tmpfs: ["/tmp:size=16m,uid=10001,gid=10001"]
+    volumes: [backup_spool:/backups]
+    mem_limit: 192m
+    cpus: 0.25
+    pids_limit: 48
 
 networks:
   edge: {}

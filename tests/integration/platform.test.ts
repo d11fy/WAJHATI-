@@ -12,6 +12,7 @@ import { saveProduct, setStorePublication } from "../../src/server/catalog/merch
 import { closeDatabase } from "../../src/server/db/client";
 import { changeRole, configurePlatform, mfaSeed, mfaVerify, platformAccess, platformRows, supportOperation } from "../../src/server/platform/repository";
 import { confirmManualSubscription, contactSettings, grantManualSubscription, mailSecret, mailView, recordMailTest, saveContact, saveMail } from "../../src/server/platform/contact";
+import { mailProvider } from "../../src/server/auth/mail";
 import { openSmtpPassword, sealSmtpPassword } from "../../src/server/auth/smtp";
 import { createStore, getMemberStore, getPublicStore } from "../../src/server/stores/repository";
 import { markLegacy } from "../fixtures/legacy.mjs";
@@ -254,14 +255,39 @@ test("Phase 6A identity and operations on PostgreSQL", async (t) => {
       assert.equal(view.config.host, "smtp.wajhati.example");
       assert.ok(!("password" in view) && !("cipher" in view) && !JSON.stringify(view).includes("super-secret-smtp-password-2026"));
 
-      assert.equal(await recordMailTest(platformOwner.token, view.revision, true), "ok");
-      const verifiedView = await mailView(platformOwner.token);
-      assert.ok(verifiedView?.verifiedAt);
+      // The mail delivery login reads the same secret through its own narrow function. It stays AES-256-GCM encrypted.
+      const mailerLogin = new Pool({ connectionString: process.env.TEST_MAILER_DATABASE_URL });
+      try {
+        const { rows: [pending] } = await mailerLogin.query("select * from ops_mail_secret()");
+        assert.equal(pending.enabled, true);
+        assert.equal(pending.verified_at, null);
+        assert.equal(pending.config.host, "smtp.wajhati.example");
+        assert.ok(Buffer.isBuffer(pending.cipher) && !pending.cipher.includes(Buffer.from("super-secret-smtp-password-2026")));
+        // Enabled but unverified: delivery stays closed, exactly as for the app.
+        process.env.MAIL_WORKER_DATABASE_URL = process.env.TEST_MAILER_DATABASE_URL;
+        try { assert.equal(await mailProvider(), null); } finally { delete process.env.MAIL_WORKER_DATABASE_URL; }
 
-      const secret = await mailSecret();
-      assert.ok(secret);
-      assert.equal(openSmtpPassword(secret.cipher), "super-secret-smtp-password-2026");
-      assert.equal(await saveMail(platformOwner.token, smtpConfig, null, false), "ok");
+        assert.equal(await recordMailTest(platformOwner.token, view.revision, true), "ok");
+        const verifiedView = await mailView(platformOwner.token);
+        assert.ok(verifiedView?.verifiedAt);
+
+        const secret = await mailSecret();
+        assert.ok(secret);
+        assert.equal(openSmtpPassword(secret.cipher), "super-secret-smtp-password-2026");
+
+        // Verified: the mail delivery process now selects the owner-managed SMTP for queued notifications.
+        process.env.MAIL_WORKER_DATABASE_URL = process.env.TEST_MAILER_DATABASE_URL;
+        try {
+          assert.equal(await mailProvider(), "smtp");
+          const viaMailer = await mailSecret();
+          assert.equal(openSmtpPassword(viaMailer!.cipher), "super-secret-smtp-password-2026");
+        } finally { delete process.env.MAIL_WORKER_DATABASE_URL; }
+
+        // Disabled by the owner: the mail delivery login receives nothing, while the identity path still sees the row.
+        assert.equal(await saveMail(platformOwner.token, smtpConfig, null, false), "ok");
+        assert.equal((await mailerLogin.query("select * from ops_mail_secret()")).rowCount, 0);
+        assert.ok(await mailSecret());
+      } finally { await mailerLogin.end(); }
 
       // Dual-admin confirmation for high-value manual subscription when threshold is exceeded
       const dualTermId = randomUUID();

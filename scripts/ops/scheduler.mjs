@@ -5,23 +5,28 @@ import { tmpdir } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
 import { validateEnv } from "./validate-env.mjs";
 
-const heartbeat = join(tmpdir(), "dar-scheduler-heartbeat");
 const minute = 60000;
-const jobs = { billing: 5 * minute, media: 10 * minute, orders: 24 * 60 * minute,
-  notifications: 3 * minute, maintenance: 24 * 60 * minute, inspect: 5 * minute };
+// Two processes with different credentials. The worker never holds mail secrets; the mailer holds the SMTP key and the
+// mail delivery login and never holds storage or any other database login.
+const workerJobs = { billing: 5 * minute, media: 10 * minute, orders: 24 * 60 * minute, maintenance: 24 * 60 * minute, inspect: 5 * minute };
+const mailerJobs = { notifications: 3 * minute };
 
 async function scheduler() {
+  const args = process.argv.slice(2).filter((argument) => argument !== "--mailer" && argument !== "--health");
+  const mode = args[0];
+  const selected = args[1];
+  const scope = process.argv.includes("--mailer") || selected === "notifications" ? "mailer" : "worker";
+  const jobs = scope === "mailer" ? mailerJobs : workerJobs;
+  const heartbeat = join(tmpdir(), scope === "mailer" ? "dar-mailer-heartbeat" : "dar-scheduler-heartbeat");
   if (process.argv.includes("--health")) {
     const age = Date.now() - (await stat(heartbeat)).mtimeMs;
     return age < 5 * minute ? 0 : 1;
   }
-  const failures = validateEnv(process.env, "worker");
+  const failures = validateEnv(process.env, scope);
   if (failures.length) {
-    console.error(JSON.stringify({ event: "invalid_worker_environment", fields: failures }));
+    console.error(JSON.stringify({ event: `invalid_${scope}_environment`, fields: failures }));
     return 1;
   }
-  const mode = process.argv[2];
-  const selected = process.argv[3];
   if (mode && (mode !== "--once" || !selected || !Object.hasOwn(jobs, selected))) return 1;
   const controller = new AbortController();
   let child;

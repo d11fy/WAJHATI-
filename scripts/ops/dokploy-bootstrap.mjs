@@ -86,9 +86,10 @@ async function provisionDatabase(env) {
     const runtimePass = deriveHex(secretSeed, "role:dar_runtime", 24);
     const identityPass = deriveHex(secretSeed, "role:dar_identity", 24);
     const mediaPass = deriveHex(secretSeed, "role:dar_media", 24);
+    const mailerPass = deriveHex(secretSeed, "role:dar_mailer", 24);
 
     const existing = new Set((await adminClient.query("select rolname from pg_roles")).rows.map((r) => r.rolname));
-    const groupRoles = ["storefront_app", "storefront_identity", "storefront_media_worker"];
+    const groupRoles = ["storefront_app", "storefront_identity", "storefront_media_worker", "storefront_mailer"];
     for (const role of groupRoles) {
       if (!existing.has(role)) {
         await adminClient.query(`CREATE ROLE ${role} NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE`);
@@ -100,6 +101,7 @@ async function provisionDatabase(env) {
       ["dar_runtime", runtimePass, "IN ROLE storefront_app"],
       ["dar_identity", identityPass, "IN ROLE storefront_identity"],
       ["dar_media", mediaPass, "IN ROLE storefront_media_worker"],
+      ["dar_mailer", mailerPass, "IN ROLE storefront_mailer"],
     ];
 
     for (const [role, pass, membership] of loginRoles) {
@@ -111,7 +113,7 @@ async function provisionDatabase(env) {
     }
 
     const dbIdent = `"${String(info.db).replace(/"/g, '""')}"`;
-    await adminClient.query(`GRANT CONNECT ON DATABASE ${dbIdent} TO dar_owner, dar_runtime, dar_identity, dar_media`);
+    await adminClient.query(`GRANT CONNECT ON DATABASE ${dbIdent} TO dar_owner, dar_runtime, dar_identity, dar_media, dar_mailer`);
     await adminClient.query(`ALTER SCHEMA public OWNER TO dar_owner`);
     await adminClient.query(`GRANT USAGE, CREATE ON SCHEMA public TO dar_owner`);
     await adminClient.query(`REVOKE CREATE ON SCHEMA public FROM PUBLIC`);

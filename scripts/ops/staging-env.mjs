@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 
 const directory = resolve(".ops/staging");
 const hex = (bytes = 32) => randomBytes(bytes).toString("hex");
-const passwords = Object.fromEntries(["admin","owner","runtime","identity","worker","backup"].map((name) => [name,hex(24)]));
+const passwords = Object.fromEntries(["admin","owner","runtime","identity","worker","mailer","backup"].map((name) => [name,hex(24)]));
 const db = (name) => `postgresql://dar_${name}:${passwords[name]}@db:5432/dar_staging`;
 const common = { DAR_ENV: "staging", DAR_STAGING_LOCAL: "true", PUBLIC_SIGNUP_ENABLED: "false", APP_ORIGIN: "https://localhost:8443",
   MAIL_PROVIDER: "local", DAR_MAIL_DIR: "/mail", S3_BUCKET: "dar-staging-media-fixture", S3_REGION: "us-east-1",
@@ -12,7 +12,11 @@ const common = { DAR_ENV: "staging", DAR_STAGING_LOCAL: "true", PUBLIC_SIGNUP_EN
 const values = {
   "app.env": { ...common, DATABASE_URL: db("runtime"), IDENTITY_DATABASE_URL: db("identity"), PLATFORM_MFA_KEY: hex(),
     PAYMENT_PROOF_ACTIVE_KEY: "stage_v1", PAYMENT_PROOF_KEYRING: JSON.stringify({stage_v1:hex()}), OPS_METRICS_TOKEN: hex(), S3_READY_KEY: "ops/readiness" },
-  "worker.env": { ...common, MEDIA_WORKER_DATABASE_URL: db("worker") },
+  "worker.env": { DAR_ENV: "staging", DAR_STAGING_LOCAL: "true", PUBLIC_SIGNUP_ENABLED: "false", APP_ORIGIN: common.APP_ORIGIN, MEDIA_WORKER_DATABASE_URL: db("worker"),
+    S3_BUCKET: common.S3_BUCKET, S3_REGION: common.S3_REGION, S3_ENDPOINT: common.S3_ENDPOINT, S3_FORCE_PATH_STYLE: "true", AWS_ACCESS_KEY_ID: "S3RVER", AWS_SECRET_ACCESS_KEY: "S3RVER" },
+  // The mail delivery process: its own database login, the SMTP key, mail settings and no storage or other database access.
+  "mailer.env": { DAR_ENV: "staging", DAR_STAGING_LOCAL: "true", PUBLIC_SIGNUP_ENABLED: "false", APP_ORIGIN: common.APP_ORIGIN,
+    MAIL_PROVIDER: "local", DAR_MAIL_DIR: "/mail", MAIL_WORKER_DATABASE_URL: db("mailer"), SMTP_CONFIG_KEY: hex() },
   "db.env": { POSTGRES_USER: "dar_admin", POSTGRES_PASSWORD: passwords.admin, POSTGRES_DB: "dar_staging" },
   "operator.env": { MIGRATION_DATABASE_URL: db("owner") },
   "backup.env": { DAR_ENV: "staging", DAR_STAGING_LOCAL: "true", PUBLIC_SIGNUP_ENABLED: "false",
@@ -28,15 +32,17 @@ END $$;
 CREATE ROLE storefront_app NOLOGIN NOSUPERUSER NOBYPASSRLS;
 CREATE ROLE storefront_identity NOLOGIN NOSUPERUSER NOBYPASSRLS;
 CREATE ROLE storefront_media_worker NOLOGIN NOSUPERUSER NOBYPASSRLS;
+CREATE ROLE storefront_mailer NOLOGIN NOSUPERUSER NOBYPASSRLS;
 CREATE ROLE dar_owner LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '${passwords.owner}';
 CREATE ROLE dar_runtime LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '${passwords.runtime}' IN ROLE storefront_app CONNECTION LIMIT 12;
 CREATE ROLE dar_identity LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '${passwords.identity}' IN ROLE storefront_identity CONNECTION LIMIT 6;
 CREATE ROLE dar_worker LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '${passwords.worker}' IN ROLE storefront_media_worker CONNECTION LIMIT 5;
+CREATE ROLE dar_mailer LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '${passwords.mailer}' IN ROLE storefront_mailer CONNECTION LIMIT 3;
 CREATE ROLE dar_backup LOGIN NOSUPERUSER BYPASSRLS PASSWORD '${passwords.backup}' IN ROLE pg_read_all_data CONNECTION LIMIT 3;
 ALTER ROLE dar_backup SET default_transaction_read_only=on;
 ALTER DATABASE dar_staging OWNER TO dar_owner;
 REVOKE CONNECT ON DATABASE dar_staging FROM PUBLIC;
-GRANT CONNECT ON DATABASE dar_staging TO dar_runtime,dar_identity,dar_worker,dar_backup;
+GRANT CONNECT ON DATABASE dar_staging TO dar_runtime,dar_identity,dar_worker,dar_mailer,dar_backup;
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 `;
 

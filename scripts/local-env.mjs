@@ -81,8 +81,9 @@ function passwords() {
   if (!existsSync(path)) writeFileSync(path, JSON.stringify(Object.fromEntries(names.map((name) => [name, randomBytes(24).toString("hex")]))), { flag: "wx", mode: 0o600 });
   const result = JSON.parse(readFileSync(path, "utf8"));
   if (names.some((name) => typeof result[name] !== "string" || !/^[a-f0-9]{48}$/.test(result[name]))) throw new Error("Invalid local PostgreSQL fixture configuration.");
-  if (!result.dar_identity || !result.smtpKey) {
+  if (!result.dar_identity || !result.dar_mailer || !result.smtpKey) {
     result.dar_identity ??= randomBytes(24).toString("hex");
+    result.dar_mailer ??= randomBytes(24).toString("hex");
     result.mfaKey ??= randomBytes(32).toString("hex");
     result.proofKey ??= randomBytes(32).toString("hex");
     result.smtpKey ??= randomBytes(32).toString("hex");
@@ -90,7 +91,7 @@ function passwords() {
     writeFileSync(next, JSON.stringify(result), { flag: "wx", mode: 0o600 });
     renameSync(next, path);
   }
-  if (!/^[a-f0-9]{48}$/.test(result.dar_identity) || !/^[a-f0-9]{64}$/.test(result.mfaKey) || !/^[a-f0-9]{64}$/.test(result.proofKey) || !/^[a-f0-9]{64}$/.test(result.smtpKey)) throw new Error("Invalid local identity configuration.");
+  if (!/^[a-f0-9]{48}$/.test(result.dar_identity) || !/^[a-f0-9]{48}$/.test(result.dar_mailer) || !/^[a-f0-9]{64}$/.test(result.mfaKey) || !/^[a-f0-9]{64}$/.test(result.proofKey) || !/^[a-f0-9]{64}$/.test(result.smtpKey)) throw new Error("Invalid local identity configuration.");
   if (!initialized) {
     const pwFile = join(local, `init-${randomUUID()}`);
     writeFileSync(pwFile, `${result.postgres}\n`, { flag: "wx", mode: 0o600 });
@@ -114,10 +115,11 @@ async function provision(password) {
     const existing = new Set((await admin.query("select rolname from pg_roles")).rows.map(({ rolname }) => rolname));
     const roles = {
       storefront_app: "NOLOGIN NOSUPERUSER NOBYPASSRLS", storefront_media_worker: "NOLOGIN NOSUPERUSER NOBYPASSRLS",
-      storefront_identity: "NOLOGIN NOSUPERUSER NOBYPASSRLS",
+      storefront_identity: "NOLOGIN NOSUPERUSER NOBYPASSRLS", storefront_mailer: "NOLOGIN NOSUPERUSER NOBYPASSRLS",
       dar_owner: "LOGIN NOSUPERUSER NOBYPASSRLS", dar_runtime: "LOGIN INHERIT NOSUPERUSER NOBYPASSRLS IN ROLE storefront_app",
       dar_media: "LOGIN INHERIT NOSUPERUSER NOBYPASSRLS IN ROLE storefront_media_worker",
       dar_identity: "LOGIN INHERIT NOSUPERUSER NOBYPASSRLS IN ROLE storefront_identity",
+      dar_mailer: "LOGIN INHERIT NOSUPERUSER NOBYPASSRLS IN ROLE storefront_mailer",
       ...(dbName === "dar_local_verify_billing" ? {
         dar_test_bypass: "NOLOGIN BYPASSRLS", dar_test_unsafe: "LOGIN IN ROLE storefront_app, dar_test_bypass",
       } : {}),
@@ -132,6 +134,30 @@ async function provision(password) {
       await admin.query(`create database ${dbName} owner dar_owner`);
     }
   } finally { await admin.end(); }
+}
+
+// The verification database persists between runs and its fixture accounts never receive real mail. Unsent
+// notifications from earlier runs age past the 20-hour abandonment window, which makes the maintenance
+// worker (correctly) exit 1 and aborts the rest of the pipeline. Retire them before the run starts so the
+// maintenance check at the end judges only this run's own notifications.
+async function retireStaleFixtureNotifications(password) {
+  assert.equal(dbName, "dar_local_verify_billing", "Fixture reset only applies to the disposable verification database.");
+  const client = new pg.Client({ connectionString: connection(password, "dar_owner"), connectionTimeoutMillis: 5_000 });
+  await client.connect();
+  try {
+    const { rowCount } = await client.query("update public.ops_notifications set failed_at = now(), lease = null where sent_at is null and failed_at is null");
+    console.log(`Verification fixture reset: ${rowCount} unsent notification(s) from earlier runs retired.`);
+  } finally { await client.end(); }
+}
+
+// The mail delivery login must be able to run and record the notifications job end to end (queue, provider, job log).
+async function assertNotificationJobRan(password) {
+  const client = new pg.Client({ connectionString: connection(password, "dar_owner"), connectionTimeoutMillis: 5_000 });
+  await client.connect();
+  try {
+    const { rows: [recent] } = await client.query("select count(*)::int as runs from public.platform_jobs where job = 'notifications' and success and finished_at > now() - interval '10 minutes'");
+    assert.ok(recent.runs >= 1, "The notifications job did not record a successful run as the mail delivery login.");
+  } finally { await client.end(); }
 }
 
 async function checkConnections(password, s3) {
@@ -286,6 +312,7 @@ async function main() {
       }
       return await complete(app);
     }
+    if (mode === "verify") await retireStaleFixtureNotifications(password);
     const mkdirRetryFile = join(local, "mkdir-retry.cjs").replace(/\\/g, "/");
     if (win) {
       writeFileSync(mkdirRetryFile, `const fs=require("node:fs"),fsp=require("node:fs/promises"),s=fs.mkdirSync.bind(fs),p=fsp.mkdir.bind(fsp);
@@ -301,7 +328,8 @@ fs.mkdir=function(t,o,c){const cb=typeof o==="function"?o:c,op=typeof o==="funct
     }
     await npm(["run", "test:db"], {
       ...env, TEST_DATABASE_URL: env.DATABASE_URL, TEST_MIGRATION_DATABASE_URL: connection(password, "dar_owner"),
-      TEST_MEDIA_DATABASE_URL: connection(password, "dar_media"), TEST_BYPASS_DATABASE_URL: connection(password, "dar_test_unsafe"),
+      TEST_MEDIA_DATABASE_URL: connection(password, "dar_media"), TEST_MAILER_DATABASE_URL: connection(password, "dar_mailer"),
+      TEST_BYPASS_DATABASE_URL: connection(password, "dar_test_unsafe"),
     });
     app = node([nextCli, "start", "--hostname", "localhost", "--port", String(appPort)], env);
     await ready();
@@ -310,7 +338,9 @@ fs.mkdir=function(t,o,c){const cb=typeof o==="function"?o:c,op=typeof o==="funct
     });
     await cleanupCheck(password, storage, env);
     await npm(["run", "orders:cleanup"], { ...env, MEDIA_WORKER_DATABASE_URL: connection(password, "dar_media") });
-    await npm(["run", "ops:notifications"], { ...env, MEDIA_WORKER_DATABASE_URL: connection(password, "dar_media") });
+    // The notification queue runs as the dedicated mail delivery login with every other database credential removed.
+    await npm(["run", "ops:notifications"], { ...env, DATABASE_URL: "", IDENTITY_DATABASE_URL: "", MEDIA_WORKER_DATABASE_URL: "", MAIL_WORKER_DATABASE_URL: connection(password, "dar_mailer") });
+    await assertNotificationJobRan(password);
     await npm(["run", "ops:maintenance"], { ...env, MEDIA_WORKER_DATABASE_URL: connection(password, "dar_media") });
     await npm(["run", "billing:expire"], { ...env, MEDIA_WORKER_DATABASE_URL: connection(password, "dar_media") });
     await complete(node(["scripts/ops/load.mjs"], { ...env, TEST_BASE_URL: origin, TEST_MIGRATION_DATABASE_URL: connection(password,"dar_owner") }));
@@ -319,6 +349,8 @@ fs.mkdir=function(t,o,c){const cb=typeof o==="function"?o:c,op=typeof o==="funct
       TEST_MIGRATION_DATABASE_URL: connection(password,"dar_owner"), TEST_S3RVER_PACKAGE: emulatorPackage,
       DAR_PG_BIN: process.env.DAR_PG_BIN || dirname(native("pg_dump")),
     }));
+    // Dry run of the Dokploy staging bring-up on a throwaway cluster: bootstrap SQL, all migrations, each login's capabilities.
+    await complete(node(["scripts/ops/rehearse-staging-bootstrap.mjs"], { ...env, DAR_PG_BIN: process.env.DAR_PG_BIN || dirname(native("pg_dump")) }));
   } finally {
     if (app && app.exitCode === null) app.kill();
     if (pdf && pdf.exitCode === null) pdf.kill();

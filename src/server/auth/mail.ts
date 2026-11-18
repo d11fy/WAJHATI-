@@ -5,6 +5,7 @@ import { join } from "node:path";
 import type { Locale } from "@/lib/i18n";
 import { registrationAvailable } from "@/lib/billing";
 import { copy } from "@/lib/copy";
+import { recipientAllowed } from "@/lib/mail-guard";
 import { defaultPlatformWhatsapp, formatWhatsappPhone } from "@/lib/platform-contact";
 import type { IdentityPurpose } from "./identity";
 import { contactSettings, mailSecret, mailView, recordMailTest } from "@/server/platform/contact";
@@ -68,6 +69,11 @@ type Mail = { to: string; purpose: string; subject: string; text: string; url: s
 async function deliver(message: Mail): Promise<"sent" | "terminal" | "retry"> {
   const provider = await mailProvider();
   if (!provider) throw new Error("Mail is unavailable.");
+  if (!recipientAllowed(message.to, provider)) {
+    // Staging safety: never reach a recipient outside the allow-list. Terminal, so the queue does not retry.
+    console.error(JSON.stringify({ event: "mail_recipient_blocked", purpose: message.purpose }));
+    return "terminal";
+  }
   if (provider === "smtp") {
     const smtp = await mailSecret();
     if (!smtp?.enabled || !smtp.verified_at) throw new Error("Mail is unavailable.");
@@ -175,6 +181,8 @@ export async function sendTestSmtpMail(token: string | undefined, locale: Locale
   if (!smtpKeyReady()) return "unavailable";
   const view = await mailView(token);
   if (!view) return "denied";
+  // The owner test send honours the staging allow-list too.
+  if (!recipientAllowed(to, "smtp")) return "invalid";
   const smtp = await mailSecret();
   if (!smtp) return "invalid";
   let ok = false;

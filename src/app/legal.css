@@ -1,0 +1,50 @@
+/* Legal pages. Brand tokens come from .wajhati-platform (navy, teal, cyan, gold, canvas). */
+@layer components {
+  .wajhati-legal { background: var(--wajhati-canvas, #f3f6f8); color: var(--wajhati-navy, #0b1f33); }
+  .wajhati-legal-main { width: min(100% - 2.5rem, 52rem); margin-inline: auto; padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 7vw, 5rem); }
+  .wajhati-legal-draft { margin-block-end: 1.5rem; padding: 1rem 1.15rem; border: 1px solid var(--wajhati-gold, #d6a85f); border-inline-start-width: 0.35rem; border-radius: 0.75rem; background: #fff8ea; color: var(--wajhati-navy, #0b1f33); line-height: 1.7; }
+  .wajhati-legal-draft p { margin-block-start: 0.25rem; font-size: 0.92rem; }
+  .wajhati-legal-head h1 { margin-block-end: 0.6rem; font-size: clamp(1.9rem, 4.5vw, 2.9rem); line-height: 1.25; font-weight: 800; text-wrap: balance; }
+  .wajhati-legal-meta { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; margin-block-end: 0.9rem; font-size: 0.85rem; color: #3d5666; }
+  .wajhati-legal-summary { font-size: 1.05rem; line-height: 1.85; color: #243b4b; }
+  .wajhati-legal-toc { margin-block: 1.75rem; padding: 1.1rem 1.25rem; border: 1px solid #d6e0e6; border-radius: 0.9rem; background: white; }
+  .wajhati-legal-toc h2 { margin: 0 0 0.6rem; font-size: 1rem; font-weight: 800; }
+  .wajhati-legal-toc ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 0.15rem 1.5rem; list-style: none; padding: 0; margin: 0; }
+  .wajhati-legal-toc a { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: 0.92rem; }
+  .wajhati-legal section { scroll-margin-block-start: 1rem; margin-block-start: 2.25rem; }
+  .wajhati-legal section h2 { margin-block-end: 0.75rem; font-size: clamp(1.25rem, 2.6vw, 1.5rem); line-height: 1.4; font-weight: 800; color: var(--wajhati-navy, #0b1f33); scroll-margin-block-start: 1rem; }
+  .wajhati-legal section p, .wajhati-legal section li { font-size: 1.0625rem; line-height: 1.95; max-width: 70ch; }
+  .wajhati-legal section p + p, .wajhati-legal section p + ul, .wajhati-legal section ul + p { margin-block-start: 0.75rem; }
+  .wajhati-legal section ul { padding-inline-start: 1.35rem; list-style: disc; }
+  .wajhati-legal section li + li { margin-block-start: 0.3rem; }
+  .wajhati-legal-main a { color: var(--wajhati-teal, #0f766e); text-decoration: underline; text-underline-offset: 0.2em; overflow-wrap: anywhere; }
+  .wajhati-legal-main a:hover { color: #0b5a54; }
+  .wajhati-legal-main :focus-visible { outline: 3px solid var(--wajhati-cyan, #22c7f2); outline-offset: 3px; border-radius: 0.2rem; }
+  .wajhati-legal-gap { padding: 0.05em 0.35em; border-radius: 0.3rem; background: rgba(214, 168, 95, 0.3); outline: 1px dashed #a8741f; color: var(--wajhati-navy, #0b1f33); font-weight: 600; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .wajhati-legal-table { width: 100%; margin-block: 1rem 0.25rem; border-collapse: separate; border-spacing: 0; border: 1px solid #d6e0e6; border-radius: 0.8rem; overflow: hidden; background: white; font-size: 0.95rem; }
+  .wajhati-legal-table th, .wajhati-legal-table td { padding: 0.8rem 0.95rem; text-align: start; vertical-align: top; line-height: 1.8; border-block-end: 1px solid #e3ebf0; }
+  .wajhati-legal-table thead th { background: var(--wajhati-navy, #0b1f33); color: white; font-weight: 700; }
+  .wajhati-legal-table tbody th { font-weight: 800; width: 24%; background: #f7fafb; }
+  .wajhati-legal-table tbody tr:last-child > * { border-block-end: 0; }
+}
+@media (max-width: 640px) {
+  .wajhati-legal-table, .wajhati-legal-table tbody, .wajhati-legal-table tr, .wajhati-legal-table th, .wajhati-legal-table td { display: block; }
+  .wajhati-legal-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .wajhati-legal-table tbody th { width: auto; }
+  .wajhati-legal-table tbody td::before { content: attr(data-label); display: block; margin-block-end: 0.1rem; font-size: 0.78rem; font-weight: 800; color: #3d5666; }
+  .wajhati-legal-table tbody tr { border-block-end: 1px solid #d6e0e6; }
+  .wajhati-legal-table tbody tr:last-child { border-block-end: 0; }
+  .wajhati-legal-table tbody td, .wajhati-legal-table tbody th { border-block-end: 0; }
+  .wajhati-legal section p, .wajhati-legal section li { font-size: 1rem; }
+}
+
+/* Entry-point links elsewhere in the product. */
+@layer components {
+  .wajhati-footer-legal { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin-block-start: 0.35rem; }
+  .wajhati-footer-legal a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+  .wajhati-auth-legal { margin-block-start: 1rem; font-size: 0.8rem; line-height: 1.8; color: #3d5666; }
+  .wajhati-auth-legal a { color: var(--wajhati-teal, #0f766e); text-decoration: underline; text-underline-offset: 0.2em; font-weight: 700; }
+  .wajhati-workspace-legal { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin-block-start: 2.5rem; padding-block-start: 0.75rem; border-block-start: 1px solid #d6e0e6; font-size: 0.8rem; }
+  .wajhati-workspace-legal a { display: inline-flex; align-items: center; min-height: 2.75rem; color: #3d5666; text-decoration: underline; text-underline-offset: 0.2em; }
+  .wajhati-workspace-legal a:hover { color: var(--wajhati-teal, #0f766e); }
+}

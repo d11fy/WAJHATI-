@@ -7,6 +7,7 @@ import settings from "@/assets/wajhati/workspace-settings.svg";
 import { Brand } from "@/components/site-header";
 import { copy } from "@/lib/copy";
 import { otherLocale, type Locale } from "@/lib/i18n";
+import { LegalLinks } from "@/components/legal-links";
 import { signOut } from "@/server/auth/actions";
 
 export type WorkspaceLink = { path: string; label: string; icon: StaticImageData; exact?: boolean; tab?: boolean };
@@ -45,7 +46,7 @@ export function WorkspaceFrame({ locale, path, title, links, children }: {
           <details key={current} className="wajhati-workspace-menu"><summary aria-label={label}><Menu size={22} aria-hidden="true" /></summary><nav aria-label={label}>{navigation(links)}</nav></details>
         </div>
       </div></header>
-      <main className="wajhati-workspace-content">{children}</main>
+      <main className="wajhati-workspace-content">{children}<LegalLinks locale={locale} className="wajhati-workspace-legal" /></main>
     </div>
     {tabs.length > 0 && <nav className="wajhati-workspace-tabs" aria-label={label}>{navigation(tabs)}</nav>}
   </div>;

@@ -12,6 +12,7 @@ import "@fontsource/amiri/700.css";
 import "../globals.css";
 import "../platform-ui.css";
 import "../marketing.css";
+import "../legal.css";
 import "../identity-ui.css";
 import "../workspace-ui.css";
 import "../storefront.css";

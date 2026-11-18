@@ -1,8 +1,10 @@
-import { Marketing, marketingTitle } from "@/components/marketing";
+import { Marketing, marketingDescription, marketingTitle } from "@/components/marketing";
+import { marketingMetadata } from "@/lib/seo";
 import { routeLocale } from "@/server/locale";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/pricing">) {
-  return { title: marketingTitle(await routeLocale(params), "pricing") };
+  const locale = await routeLocale(params);
+  return marketingMetadata(locale, "/pricing", marketingTitle(locale, "pricing"), marketingDescription(locale, "pricing"));
 }
 
 export default async function Pricing({ params, searchParams }: PageProps<"/[locale]/pricing">) {

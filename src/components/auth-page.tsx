@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/auth-form";
 import { AuthShell } from "@/components/auth-shell";
+import { LegalAcknowledgement, LegalLinks } from "@/components/legal-links";
 import { registrationAvailable } from "@/lib/billing";
 import { copy } from "@/lib/copy";
 import type { Locale } from "@/lib/i18n";
@@ -19,6 +20,7 @@ export async function AuthPage({ locale, mode }: { locale: Locale; mode: "sign-i
           <AuthForm locale={locale} mode={mode}>
             {!signup && <Link className="wajhati-auth-help" href={`/${locale}/forgot-password`}>{ar ? "استعادة كلمة المرور" : "Forgot your password?"}</Link>}
           </AuthForm>
+          {signup ? <LegalAcknowledgement locale={locale} className="wajhati-auth-legal" /> : <LegalLinks locale={locale} className="wajhati-auth-legal wajhati-footer-legal" />}
           {(signup || registration) && <p className="wajhati-auth-alternative">
             {signup ? t.haveAccount : t.noAccount}{" "}
             <Link className="font-bold text-brand underline underline-offset-4" href={`/${locale}/${signup ? "sign-in" : "sign-up"}`}>{signup ? t.signIn : t.signUp}</Link>

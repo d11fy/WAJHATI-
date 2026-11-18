@@ -190,6 +190,13 @@
       "when": 1794728209829,
       "tag": "0026_contact_subscription_access",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794814609829,
+      "tag": "0027_mail_delivery_role",
+      "breakpoints": true
     }
   ]
 }

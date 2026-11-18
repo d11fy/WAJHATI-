@@ -7,6 +7,7 @@ import credit from "@/assets/wajhati/credit.svg";
 import grid from "@/assets/wajhati/grid.svg";
 import message from "@/assets/wajhati/message.svg";
 import spark from "@/assets/wajhati/spark.svg";
+import { LegalLinks } from "@/components/legal-links";
 import { Brand } from "@/components/site-header";
 import { ProductPreview } from "@/components/product-preview";
 import { BrandStage } from "@/components/brand-stage";
@@ -104,6 +105,12 @@ export function marketingTitle(locale: Locale, section: Exclude<MarketingSection
   return strings[locale].nav[{ features: 0, pricing: 2, faq: 3 }[section]];
 }
 
+/** Page descriptions reuse the approved on-page copy so metadata never claims more than the page does. */
+export function marketingDescription(locale: Locale, section: MarketingSection) {
+  const t = strings[locale];
+  return { home: t.intro, features: t.featuresIntro, pricing: t.pricingNote, faq: t.faqIntro }[section];
+}
+
 export async function Marketing({ locale, section, search = {} }: { locale: Locale; section: MarketingSection; search?: Search }) {
   const t = strings[locale];
   const ar = locale === "ar";
@@ -177,7 +184,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
       {section === "home" && <section className="wajhati-market-closing"><div className="wajhati-market-width"><h2>{t.closing}</h2><div className="mt-4 flex flex-wrap justify-center gap-3"><Link className="button wajhati-cta" href={action}>{actionLabel}</Link>{supportUrl && <a className="button wajhati-hero-secondary" href={supportUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} aria-hidden="true" />{t.whatsappSupport}</a>}</div></div></section>}
     </main>
     <footer className="wajhati-market-footer"><div className="wajhati-market-width"><div><Brand locale={locale} /><p>{t.description}</p></div>
-      <nav aria-label={t.menu}>{nav}</nav><div><strong>{t.workspaces}</strong><p><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link></p>{supportUrl && <p className="mt-1"><a href={supportUrl} target="_blank" rel="noopener noreferrer">{t.whatsappSupport}</a></p>}</div>
+      <nav aria-label={t.menu}>{nav}</nav><div><strong>{t.workspaces}</strong><p><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link></p>{supportUrl && <p className="mt-1"><a href={supportUrl} target="_blank" rel="noopener noreferrer">{t.whatsappSupport}</a></p>}<LegalLinks locale={locale} className="wajhati-footer-legal" /></div>
     </div></footer>
   </div>;
 }

@@ -1,0 +1,11 @@
+[Unit]
+Description=Dar Market backup freshness check
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/dar-market
+ExecStart=/usr/bin/docker compose --project-name dar-production --env-file .ops/production/compose.env --profile backup run --rm backup-check
+TimeoutStartSec=5min

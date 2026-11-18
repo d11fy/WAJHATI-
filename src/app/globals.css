@@ -17,6 +17,11 @@
   :focus-visible { @apply outline-2 outline-offset-4 outline-brand; }
   ::selection { @apply bg-leaf text-ink; }
   button:not(:disabled) { cursor: pointer; }
+  /* The browser default (13px) is too small to hit on a phone. 24px is the WCAG 2.2 minimum target size. */
+  input[type="checkbox"], input[type="radio"] { inline-size: 1.125rem; block-size: 1.125rem; flex: none; }
+  @media (max-width: 640px), (pointer: coarse) {
+    input[type="checkbox"], input[type="radio"] { inline-size: 1.5rem; block-size: 1.5rem; }
+  }
 }
 
 @layer components {

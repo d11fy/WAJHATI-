@@ -2,6 +2,7 @@
 
 import { ArrowRight, Check } from "lucide-react";
 import { useActionState, useState } from "react";
+import { LegalAcknowledgement } from "@/components/legal-links";
 import { copy } from "@/lib/copy";
 import type { Locale } from "@/lib/i18n";
 import { storeInput } from "@/lib/validation";
@@ -75,6 +76,7 @@ export function StoreWizard({ locale, countries, currencies }: { locale: Locale;
           </label>
         </fieldset>
         {error && step === 2 && <p role="alert" className="error mt-4">{t[error]}</p>}
+        {step === 2 && <LegalAcknowledgement locale={locale} className="mt-4 text-xs text-muted" />}
         <div className="wajhati-wizard-actions">
           {step === 1 ? <button type="submit" className="button button-primary">{t.next}<ArrowRight size={16} className="arrow" aria-hidden="true" /></button> : (
             <>
