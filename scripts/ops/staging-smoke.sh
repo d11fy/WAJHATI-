@@ -8,7 +8,7 @@ if [[ $("${stage[@]}" exec -T db psql -U dar_admin -d dar_staging -Atc "select c
   "${stage[@]}" exec -T db psql -v ON_ERROR_STOP=1 -U dar_admin -d dar_staging < .ops/staging/bootstrap.sql
 fi
 "${stage[@]}" --profile operator run --rm operator
-"${stage[@]}" up -d --wait --wait-timeout 120 app worker proxy
+"${stage[@]}" up -d --wait --wait-timeout 120 app worker mailer proxy
 
 origin=https://localhost:8443
 # Use the local Caddy CA for TLS validation. The CA is only for this loopback fixture.
@@ -25,7 +25,7 @@ curl --fail --silent --show-error --cacert "$ca" --dump-header - --output /dev/n
 [[ $(curl --silent --show-error --cacert "$ca" --output /dev/null --write-out '%{http_code}' "$origin/api/metrics") == 404 ]]
 [[ $(curl --silent --show-error --cacert "$ca" --output /dev/null --write-out '%{http_code}' "$origin/en/sign-up") == 404 ]]
 [[ $(curl --silent --show-error --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/health) == 308 ]]
-for service in app pdf worker proxy; do
+for service in app pdf worker mailer proxy; do
   container=$("${stage[@]}" ps -q "$service")
   [[ $(docker inspect -f '{{.Config.User}} {{.HostConfig.ReadonlyRootfs}}' "$container") == '10001:10001 true' ]]
 done

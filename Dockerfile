@@ -42,6 +42,9 @@ COPY --from=base /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && install -d -o 10001 -g 10001 /mail /backups
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json tsconfig.json drizzle.config.ts ./
+# Non-secret deployment files, so the backup configuration snapshot can record their hashes.
+COPY Dockerfile compose.yaml package-lock.json ./
+COPY infra ./infra
 COPY scripts ./scripts
 COPY src ./src
 COPY drizzle ./drizzle

@@ -1,0 +1,10 @@
+[Unit]
+Description=Check that Dar Market backups are fresh every hour
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=2min
+
+[Install]
+WantedBy=timers.target

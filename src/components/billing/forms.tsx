@@ -2,6 +2,7 @@
 
 import { useActionState, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { SubscriptionTermsLink } from "@/components/legal-links";
 import type { BillingOptions, PlanCode, ReviewRow } from "@/lib/billing";
 import { billingCopy, billingPlans } from "@/lib/billing-copy";
 import { formatPrice, priceInput, type Currency } from "@/lib/catalog";
@@ -115,6 +116,7 @@ export function WhatsAppSubscriptionCard({
       <div>
         <p className="font-bold text-ink">{t.whatsappNumberLabel}: <bdi dir="ltr">{formattedPhone}</bdi></p>
         <p className="mt-1 text-muted">{t.perStoreNotice}</p>
+        <p className="mt-1 text-xs"><SubscriptionTermsLink locale={locale} /></p>
       </div>
       <div className="inline-flex rounded-xl border border-line bg-surface p-1" role="group" aria-label={t.plan}>
         {(["monthly", "yearly"] as const).map((item) => (

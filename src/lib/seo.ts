@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { locales, type Locale } from "./i18n";
+import { legalApproved, legalPaths } from "./legal";
 
 /** Marketing routes that may be indexed, relative to `/{locale}`. */
 export const marketingPaths = ["", "/features", "/pricing", "/faq"] as const;
@@ -36,10 +37,12 @@ export function robotsRules(env: Record<string, string | undefined> = process.en
   };
 }
 
-export function sitemapEntries(env: Record<string, string | undefined> = process.env, now = new Date()) {
+export function sitemapEntries(env: Record<string, string | undefined> = process.env, now = new Date(), unresolvedLegal?: number) {
   if (!crawlable(env)) return [];
   const origin = siteOrigin(env).origin;
-  return locales.flatMap((locale) => marketingPaths.map((path) => ({
+  // Draft legal pages stay out of the sitemap until LEGAL_APPROVED=true.
+  const paths = [...marketingPaths, ...(legalApproved(env, unresolvedLegal) ? legalPaths : [])];
+  return locales.flatMap((locale) => paths.map((path) => ({
     url: `${origin}/${locale}${path}`,
     lastModified: now,
     changeFrequency: path === "/pricing" ? "weekly" as const : "monthly" as const,
@@ -49,12 +52,13 @@ export function sitemapEntries(env: Record<string, string | undefined> = process
 }
 
 /** Canonical, hreflang and social metadata for a marketing page. */
-export function marketingMetadata(locale: Locale, path: (typeof marketingPaths)[number], title: string | undefined, description: string): Metadata {
+export function marketingMetadata(locale: Locale, path: string, title: string | undefined, description: string, index = true): Metadata {
   const brand = locale === "ar" ? "واجهتي | WAJHATI" : "WAJHATI | واجهتي";
   const url = `/${locale}${path}`;
   return {
     ...(title ? { title } : {}),
     description,
+    ...(index ? {} : { robots: { index: false, follow: true } }),
     metadataBase: siteOrigin(),
     alternates: { canonical: url, languages: Object.fromEntries([...locales.map((language) => [language, `/${language}${path}`]), ["x-default", `/ar${path}`]]) },
     openGraph: { type: "website", siteName: brand, title: title ? `${title} · ${brand}` : brand, description, url, locale: locale === "ar" ? "ar_AR" : "en_US" },

@@ -7,8 +7,11 @@ import type { PoolClient } from "pg";
 
 async function clean() {
   loadEnvConfig(process.cwd());
-  const url = process.env.MEDIA_WORKER_DATABASE_URL;
-  if (!url) throw new Error("MEDIA_WORKER_DATABASE_URL is required.");
+  // The notification queue runs as the dedicated mail delivery login (storefront_mailer): it holds the SMTP key and
+  // can read the SMTP secret, and nothing else. Every other job keeps the media worker login and never sees mail secrets.
+  const mailer = process.argv.includes("--notifications");
+  const url = mailer ? process.env.MAIL_WORKER_DATABASE_URL : process.env.MEDIA_WORKER_DATABASE_URL;
+  if (!url) throw new Error(`${mailer ? "MAIL_WORKER_DATABASE_URL" : "MEDIA_WORKER_DATABASE_URL"} is required.`);
   const db = new Pool({ connectionString: url, max: 3, connectionTimeoutMillis: 5_000 });
   const job = process.argv.includes("--inspect") ? "inspect" : process.argv.includes("--notifications") ? "notifications" :
     process.argv.includes("--maintenance") ? "maintenance" : process.argv.includes("--billing") ? "billing" :
@@ -18,7 +21,16 @@ async function clean() {
   let success = false;
   let counts: Record<string, number> = {};
   try {
-    const { rows: [role] } = await db.query<{ allowed: boolean }>(`
+    const { rows: [role] } = await db.query<{ allowed: boolean }>(mailer ? `
+      select current_user = session_user and pg_has_role(current_user, 'storefront_mailer', 'USAGE')
+        and not pg_has_role(current_user, 'storefront_app', 'MEMBER')
+        and not pg_has_role(current_user, 'storefront_identity', 'MEMBER')
+        and not pg_has_role(current_user, 'storefront_media_worker', 'MEMBER')
+        and not exists (select 1 from pg_roles r where (r.rolsuper or r.rolbypassrls or r.rolcreaterole)
+          and pg_has_role(session_user, r.oid, 'MEMBER'))
+        and not has_table_privilege(session_user, 'public.platform_mail', 'SELECT')
+        and not has_table_privilege(session_user, 'public.users', 'SELECT') as allowed
+    ` : `
       select current_user = session_user and pg_has_role(current_user, 'storefront_media_worker', 'USAGE')
         and not pg_has_role(current_user, 'storefront_app', 'MEMBER')
         and not pg_has_role(current_user, 'storefront_identity', 'MEMBER')
@@ -27,7 +39,7 @@ async function clean() {
         and not exists (select 1 from pg_class c where c.oid in ('public.catalog_images'::regclass, 'public.billing_requests'::regclass)
           and pg_has_role(session_user, c.relowner, 'MEMBER')) as allowed
     `);
-    if (!role?.allowed) throw new Error("Cleanup requires the restricted media worker login.");
+    if (!role?.allowed) throw new Error(mailer ? "Notifications require the restricted mail delivery login." : "Cleanup requires the restricted media worker login.");
     if (job === "inspect") {
       const { rows } = await db.query<{ job: string }>("select * from public.ops_missed_jobs()");
       for (const row of rows) await reportOperationalError("worker_missed", row.job);
@@ -41,7 +53,8 @@ async function clean() {
       success = true;
       return;
     }
-    run = (await db.query<{ id: string }>("select public.platform_job_start($1) as id", [job])).rows[0]?.id;
+    run = (await (mailer ? db.query<{ id: string }>("select public.ops_mail_job_start() as id")
+      : db.query<{ id: string }>("select public.platform_job_start($1) as id", [job]))).rows[0]?.id;
     if (!run) throw new Error("Worker start was not recorded.");
     if (job === "billing") {
       const { rows: [result] } = await db.query<{ counts: { requests: number; subscriptions: number; proofs: number } }>(
@@ -96,7 +109,7 @@ async function clean() {
     if (failed) process.exitCode = 1;
   } finally {
     try {
-      if (run) await db.query("select public.platform_job_finish($1,$2,$3::jsonb)", [run, success, JSON.stringify(counts)]);
+      if (run) await db.query(mailer ? "select public.ops_mail_job_finish($1,$2,$3::jsonb)" : "select public.platform_job_finish($1,$2,$3::jsonb)", [run, success, JSON.stringify(counts)]);
       if (!success) await reportOperationalError(job === "billing" ? "subscription_failed" : "worker_failed", job);
       if (run) console.log(JSON.stringify({ event: "job_finished", job, run, success, counts }));
     } finally {

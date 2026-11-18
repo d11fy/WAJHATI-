@@ -47,7 +47,48 @@ function createDatabase(url: string, identity = false) {
   };
 }
 
-const runtime = globalThis as typeof globalThis & { darDatabase?: ReturnType<typeof createDatabase>; darIdentity?: ReturnType<typeof createDatabase> };
+/**
+ * The mail delivery process's handle. It connects as a dedicated login in `storefront_mailer`, whose only abilities are
+ * SECURITY DEFINER functions (the notification queue, its own job log, the public WhatsApp number and the enabled SMTP
+ * secret). The check refuses any login that could do more, or could read the secret table or other tables directly.
+ */
+function createMailerDatabase(url: string) {
+  const pool = new Pool({ connectionString: url, max: 3, connectionTimeoutMillis: 5_000 });
+  pool.on("error", () => console.error("An idle PostgreSQL connection failed."));
+  const db = drizzle(pool);
+  let roleCheck: Promise<void> | undefined;
+  return {
+    async get() {
+      roleCheck ??= pool.query<{ restricted: boolean }>(`
+        select current_user = session_user
+          and pg_has_role(current_user, 'storefront_mailer', 'USAGE')
+          and not pg_has_role(session_user, 'storefront_app', 'MEMBER')
+          and not pg_has_role(session_user, 'storefront_identity', 'MEMBER')
+          and not pg_has_role(session_user, 'storefront_media_worker', 'MEMBER')
+          and not has_schema_privilege(session_user, 'public', 'CREATE')
+          and not exists (
+            select 1 from pg_roles as r
+            where (r.rolsuper or r.rolbypassrls or r.rolcreaterole) and pg_has_role(session_user, r.oid, 'MEMBER')
+          )
+          and not has_table_privilege(session_user, 'public.platform_mail', 'SELECT')
+          and not has_table_privilege(session_user, 'public.users', 'SELECT')
+          and not has_table_privilege(session_user, 'public.ops_notifications', 'SELECT') as restricted
+      `).then(({ rows }) => {
+        if (!rows[0]?.restricted) throw new Error("MAIL_WORKER_DATABASE_URL must use the restricted mail delivery role.");
+      }).catch((error: unknown) => {
+        roleCheck = undefined;
+        throw error;
+      });
+      await roleCheck;
+      return db;
+    },
+    close: () => pool.end(),
+  };
+}
+
+const runtime = globalThis as typeof globalThis & {
+  darDatabase?: ReturnType<typeof createDatabase>; darIdentity?: ReturnType<typeof createDatabase>; darMailer?: ReturnType<typeof createMailerDatabase>;
+};
 
 export function database() {
   const url = process.env.DATABASE_URL;
@@ -63,12 +104,21 @@ export function identityDatabase() {
   return runtime.darIdentity.get();
 }
 
+export function mailerDatabase() {
+  const url = process.env.MAIL_WORKER_DATABASE_URL;
+  if (!url) throw new Error("MAIL_WORKER_DATABASE_URL is required for mail delivery.");
+  runtime.darMailer ??= createMailerDatabase(url);
+  return runtime.darMailer.get();
+}
+
 export async function closeDatabase() {
   const db = runtime.darDatabase;
   const identity = runtime.darIdentity;
+  const mailer = runtime.darMailer;
   delete runtime.darDatabase;
   delete runtime.darIdentity;
-  await Promise.all([db?.close(), identity?.close()]);
+  delete runtime.darMailer;
+  await Promise.all([db?.close(), identity?.close(), mailer?.close()]);
 }
 
 export function hasDatabaseConstraint(error: unknown, code: string, constraint: string): boolean {

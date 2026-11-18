@@ -110,10 +110,15 @@ test("merchant customizes two layouts, previews privately and publishes with des
   await owner.locator('[name="name"]').fill(store);
   await owner.locator('[name="slug"]').fill(slug);
   await owner.getByRole("button", { name: "متابعة" }).click();
+  // Onboarding links to both legal documents.
+  await owner.locator("form").getByRole("link", { name: "شروط الخدمة" }).waitFor();
+  await owner.locator("form").getByRole("link", { name: "سياسة الخصوصية" }).waitFor();
   await owner.locator('[name="country"]').selectOption("JO");
   await owner.locator('[name="currency"]').selectOption("JOD");
   await owner.getByRole("button", { name: "إنشاء متجر" }).click();
   await owner.waitForURL(dashboard);
+  // The merchant workspace footer links to the legal documents too.
+  await owner.locator(".wajhati-workspace-legal").getByRole("link", { name: "سياسة الخصوصية" }).waitFor();
   await grantLegacyForBrowser(slug);
   await owner.goto(`${dashboard}/categories`);
   await owner.locator('[name="nameAr"]').fill("البن والقهوة");

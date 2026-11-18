@@ -6,7 +6,7 @@ import { chromium } from "playwright-core";
 
 // Responsive + accessibility sweep over the public marketing pages and the six family-theme demos in both
 // locales. It collects every defect first and asserts once, so a single run lists everything that is wrong.
-const marketing = ["", "/features", "/pricing", "/faq", "/sign-in"];
+const marketing = ["", "/features", "/pricing", "/faq", "/sign-in", "/privacy", "/terms"];
 const themes = ["electro-x", "maison-wear", "aura-beauty", "luma-gifts", "digital-hub", "learnpro"];
 const marketingWidths = [320, 360, 375, 390, 430, 768, 1024, 1440, 1920];
 const themeWidths = [320, 390, 768, 1440];
