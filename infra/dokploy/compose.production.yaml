@@ -240,6 +240,30 @@ services:
     mem_limit: 384m
     pids_limit: 80
 
+  # One-time issue of the owner's authenticator enrolment key (valid 30 minutes). The key goes in the Dokploy environment as
+  # ENROLLMENT_KEY (43 characters, base64url), is read here from the environment and stored only as a digest. Run once, then
+  # delete ENROLLMENT_KEY:   docker compose --profile mfa run --rm mfa
+  mfa:
+    <<: *restricted
+    restart: "no"
+    profiles: [mfa]
+    build: { context: ../.., target: operations }
+    environment:
+      MIGRATION_DATABASE_URL: postgresql://dar_owner:${DAR_OWNER_PASSWORD:-}@db:5432/dar_production
+      OWNER_EMAIL: ${OWNER_EMAIL:?set OWNER_EMAIL}
+      ENROLLMENT_KEY: ${ENROLLMENT_KEY:?set ENROLLMENT_KEY}
+    command:
+      - sh
+      - -c
+      - >-
+        printf '%s' "$$ENROLLMENT_KEY" | node --conditions=react-server --import tsx scripts/platform-operator.ts issue-enrollment "$$OWNER_EMAIL"
+    tmpfs: ["/tmp:size=48m,uid=10001,gid=10001"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [data]
+    mem_limit: 384m
+    pids_limit: 80
+
   # Encrypted backups of production (database, media, configuration manifest). Optional but required: a real restore test must pass before launch.
   backup:
     <<: *restricted
