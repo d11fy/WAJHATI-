@@ -244,6 +244,30 @@ services:
     mem_limit: 384m
     pids_limit: 80
 
+  # One-time load of prices and payment methods. The configuration holds the owner's payment details, and this repository is
+  # public, so it is passed base64-encoded in BILLING_CONFIG_B64 from the Dokploy environment and never stored in Git.
+  # Run once, then delete BILLING_CONFIG_B64:   docker compose --profile billing run --rm billing
+  billing:
+    <<: *restricted
+    restart: "no"
+    profiles: [billing]
+    build: { context: ../.., target: operations }
+    environment:
+      MIGRATION_DATABASE_URL: postgresql://dar_owner:${DAR_OWNER_PASSWORD:-}@db:5432/dar_production
+      BILLING_CONFIG_B64: ${BILLING_CONFIG_B64:-}
+    command:
+      - sh
+      - -c
+      - >-
+        printf '%s' "$$BILLING_CONFIG_B64" | base64 -d > /tmp/billing.json
+        && node --conditions=react-server --import tsx scripts/billing-operator.ts configure /tmp/billing.json
+    tmpfs: ["/tmp:size=16m,uid=10001,gid=10001"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [data]
+    mem_limit: 384m
+    pids_limit: 80
+
   # One-time issue of the owner's authenticator enrolment key (valid 30 minutes). The key goes in the Dokploy environment as
   # ENROLLMENT_KEY (43 characters, base64url), is read here from the environment and stored only as a digest. Run once, then
   # delete ENROLLMENT_KEY:   docker compose --profile mfa run --rm mfa

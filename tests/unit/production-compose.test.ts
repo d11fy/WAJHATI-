@@ -84,7 +84,7 @@ test("only the app is routable, on the production host over HTTPS, with no edge 
 });
 
 test("hardening is uniform, no secret is in the file, and the role bootstrap targets the production database", () => {
-  for (const name of ["app", "pdf", "worker", "mailer", "operator", "owner", "mfa", "backup", "backup-runner", "drill", "backup-check"]) {
+  for (const name of ["app", "pdf", "worker", "mailer", "operator", "owner", "mfa", "billing", "backup", "backup-runner", "drill", "backup-check"]) {
     const service = compose.services[name];
     assert.equal(service.read_only, true, name);
     assert.deepEqual(service.cap_drop, ["ALL"], name);

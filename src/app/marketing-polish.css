@@ -147,3 +147,64 @@
     .wajhati-market-closing::before { inline-size: 16rem; block-size: 16rem; }
   }
 }
+
+/* ---------- Pricing: two plans side by side, payments ---------- */
+@layer components {
+  .wajhati-plan-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; align-items: stretch; margin-block-start: 0.5rem; }
+  .wajhati-plan-cards .premium-price-layout {
+    position: relative; display: flex; flex-direction: column; gap: 1.25rem; margin: 0; padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid #dbe6e2; border-radius: 1.5rem; background: linear-gradient(170deg, #fff, #f3f8f7);
+    transition: transform 220ms ease, box-shadow 220ms ease;
+  }
+  .wajhati-plan-cards .premium-price-layout:hover { transform: translateY(-4px); box-shadow: 0 24px 48px rgb(11 31 51 / 10%); }
+  .wajhati-plan-cards .premium-price-layout.is-featured {
+    border: 2px solid var(--wajhati-teal); background: linear-gradient(170deg, #fff, #e9f6f3);
+    box-shadow: 0 0 0 6px rgb(15 118 110 / 7%), 0 28px 56px rgb(15 118 110 / 14%);
+  }
+  .wajhati-plan-head { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+  .wajhati-plan-head .premium-plan-icon { margin: 0; flex: none; }
+  .is-featured .wajhati-plan-head .premium-plan-icon { background: var(--wajhati-teal); color: white; }
+  .wajhati-plan-head h3 { font: 800 1.6rem Poppins, sans-serif; }
+  .wajhati-plan-head p { font-size: 0.84rem; color: var(--color-muted); }
+  .wajhati-plan-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem; margin-inline-start: auto; padding: 0.3rem 0.75rem; border-radius: 999px;
+    background: var(--wajhati-teal); color: white; font-size: 0.72rem; font-weight: 700;
+  }
+  .wajhati-plan-cards .premium-price-options { gap: 0.75rem; }
+  .wajhati-plan-cards .premium-price-card { padding: 1.1rem; border-radius: 1.1rem; background: #fff; }
+  .wajhati-plan-cards .premium-price-card header { min-height: 0; }
+  .wajhati-plan-cards .premium-price-annual { background: var(--wajhati-navy); }
+  .wajhati-plan-cards .premium-price-amount { margin-block: 0.4rem 0.2rem; }
+  .wajhati-plan-cards .premium-price-amount > bdi { font-size: clamp(1.7rem, 2.6vw, 2.25rem); }
+  .wajhati-plan-cards .premium-price-card .premium-price-market-label { margin-block-end: 0.9rem; }
+  .wajhati-plan-cards .premium-price-features { padding: 0; margin-block-start: auto; }
+  .wajhati-plan-cards .premium-price-features ul { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; margin: 0; padding-block-start: 1.1rem; border-block-start: 1px dashed #cfdedb; }
+  .wajhati-plan-cards .premium-price-features li { font-size: 0.88rem; }
+  .wajhati-plan-cards .premium-price-features li svg { padding: 0.15rem; inline-size: 1.25rem; block-size: 1.25rem; border-radius: 50%; background: #e1f1ee; }
+  .wajhati-plan-cards .premium-price-features li.is-excluded { color: #8a9ba3; }
+  .wajhati-plan-cards .premium-price-features li.is-excluded svg { color: #a3b2b9; background: #eef2f4; }
+  .wajhati-plan-cards .premium-price-features li.is-excluded span { text-decoration: line-through; text-decoration-color: #c3ced3; }
+  .wajhati-plan-cards .is-strong { font-weight: 800; color: var(--wajhati-navy); }
+
+  .wajhati-payments { display: grid; gap: 1.5rem; margin-block-start: 2rem; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid #dbe6e2; border-radius: 1.5rem; background: #f4f8f7; }
+  .wajhati-payments h3 { font-size: 1.3rem; font-weight: 800; }
+  .wajhati-payments-copy p { max-inline-size: 62ch; margin-block-start: 0.35rem; font-size: 0.9rem; }
+  .wajhati-pay-methods { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .wajhati-pay-methods li {
+    display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.95rem; border: 1px solid #d3e3df; border-radius: 0.9rem; background: white; font-weight: 700; font-size: 0.88rem;
+    transition: transform 160ms ease, border-color 160ms ease;
+  }
+  .wajhati-pay-methods li:hover { transform: translateY(-2px); border-color: #8fcfc5; }
+  .wajhati-pay-methods svg { color: var(--wajhati-teal); }
+  .wajhati-pay-methods small { padding: 0.1rem 0.5rem; border-radius: 999px; background: #e7f3f0; color: #35525e; font-weight: 600; font-size: 0.68rem; }
+  .wajhati-pay-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; counter-reset: pay; }
+  .wajhati-pay-steps li { position: relative; display: grid; gap: 0.5rem; align-content: start; padding: 1.1rem; border-radius: 1.1rem; background: white; border: 1px solid #e0eae7; }
+  .wajhati-pay-steps li > span { display: grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border-radius: 0.8rem; background: #e1f1ee; color: var(--wajhati-teal); }
+  .wajhati-pay-steps strong { font-size: 1rem; }
+  .wajhati-pay-steps p { font-size: 0.84rem; line-height: 1.7; color: var(--color-muted); }
+  .wajhati-payments-whatsapp { justify-self: start; }
+
+  @media (max-width: 63.99rem) { .wajhati-plan-cards { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 47.99rem) { .wajhati-pay-steps { grid-template-columns: minmax(0, 1fr); } .wajhati-plan-badge { margin-inline-start: 0; } }
+  @media (max-width: 29.99rem) { .wajhati-plan-cards .premium-price-options { grid-template-columns: minmax(0, 1fr); } }
+}
