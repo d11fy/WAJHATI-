@@ -1,9 +1,10 @@
-import { Calculator, Eye, Globe2, Hash, ImageOff, Languages, MessageCircle, Store as StoreIcon } from "lucide-react";
+import { ArrowRight, Calculator, Eye, Globe2, Hash, ImageOff, Languages, MessageCircle, Store as StoreIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { publicImagePath } from "@/components/catalog/catalog-ui";
 import { AddToCart, CartLink } from "@/components/orders/cart";
+import { QuickAdd } from "@/components/orders/quick-add";
 import { DemoAddToCart, DemoCartLink } from "@/components/demo-cart";
 import { formatPrice, localizedValue, type CatalogFilters, type Currency } from "@/lib/catalog";
 import { catalogCopy } from "@/lib/catalog-copy";
@@ -161,9 +162,12 @@ export function ProductTile({ base, product }: { base: Base; product: ThemeProdu
       <h3><bdi>{name}</bdi></h3>
       <StorePrice base={base} product={product} />
       {!product.available && <span className="store-stock">{catalogCopy[locale].unavailableItem}</span>}
+      {!preview && product.available && <span className="store-tile-cta" aria-hidden="true">{chrome.view}<ArrowRight size={15} className="arrow" /></span>}
     </div>
   </>;
-  return <li className="store-tile" data-available={product.available}>{preview ? <article>{content}</article> : <Link href={`${storePath(base)}/p/${product.slug}`}>{content}</Link>}</li>;
+  return <li className="store-tile" data-available={product.available}>{preview ? <article>{content}</article> : <Link href={`${storePath(base)}/p/${product.slug}`}>{content}</Link>}
+    {!preview && !base.demo && product.available && base.contact?.accepting && <QuickAdd storeId={base.contact.storeId} store={store.slug} product={product.slug} locale={locale} />}
+  </li>;
 }
 
 export function CategoryShowcase({ base, items }: { base: Base; items: ThemeCategory[] }) {

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Globe2, Languages, Menu, MessageCircle, Plus, ShieldCheck, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Globe2, Languages, Menu, MessageCircle, ShieldCheck, XCircle } from "lucide-react";
 import bag from "@/assets/wajhati/bag.svg";
 import check from "@/assets/wajhati/check.svg";
 import credit from "@/assets/wajhati/credit.svg";
@@ -11,6 +11,10 @@ import { LegalLinks } from "@/components/legal-links";
 import { Brand } from "@/components/site-header";
 import { ProductPreview } from "@/components/product-preview";
 import { HomeHero } from "@/components/home-hero";
+import { ChannelMarquee } from "@/components/channel-marquee";
+import { FaqList } from "@/components/faq-list";
+import { ThemesMenu } from "@/components/themes-menu";
+import { themeRegistry } from "@/lib/theme-config";
 import { heroThemes } from "@/components/hero-themes";
 import { ThemeShowcase } from "@/components/theme-showcase";
 import { PublicPricing } from "@/components/public-pricing";
@@ -135,7 +139,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
   return <div className={`wajhati-platform wajhati-marketing${section === "home" ? " wajhati-marketing-home" : ""}`}>
     <a className="sr-only focus:not-sr-only" href="#content">{ar ? "انتقل إلى المحتوى" : "Skip to content"}</a>
     <header className="wajhati-market-header"><nav className="wajhati-market-width" aria-label={t.menu}>
-      <Brand locale={locale} /><div className="wajhati-market-links">{nav}</div>
+      <Brand locale={locale} /><div className="wajhati-market-links"><ThemesMenu label={ar ? "الثيمات" : "Themes"} all={{ href: `${root}#themes`, label: ar ? "عرض كل الثيمات" : "See all themes" }} themes={heroThemes(locale)} />{t.nav.map((label, index) => <Link key={label} href={links[index]} aria-current={links[index] === root + page ? "page" : undefined}>{label}</Link>)}</div>
       <div className="wajhati-market-actions"><Link href={`/${alt}${page}`} lang={alt} hrefLang={alt} aria-label={copy[locale].switchLanguage}><Globe2 size={18} aria-hidden="true" /></Link>
         <Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link>{signup && <Link href={action} className="button wajhati-cta">{actionLabel}</Link>}
       </div>
@@ -152,11 +156,19 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
           </div>
         </div>
       </section>}
+      {section === "home" && <ChannelMarquee locale={locale} />}
       {section === "home" && <ThemeShowcase locale={locale} />}
       {(section === "home" || section === "features") && <>
         <section className="wajhati-market-width wajhati-market-section" aria-label={t.features}>
-          {section === "home" && <div className="premium-workspace-intro"><div><h2>{t.features}</h2><p>{t.featuresNote}</p><Link href={`${root}/features`} className="premium-text-link">{t.explore}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link></div><ProductPreview locale={locale} /></div>}
-          <div className={section === "home" ? "wajhati-feature-band" : "wajhati-market-grid"}>{(section === "home" ? [1, 3, 2] : [0, 1, 2, 3, 4, 5]).map((i) => <article className={section === "home" ? undefined : "panel"} key={i}><span className="icon-tile"><Image src={icons[i]} alt="" unoptimized /></span><div><h3>{t.cards[i][0]}</h3><p>{t.cards[i][1]}</p></div></article>)}</div>
+          {section === "home" ? <>
+            <div className="bento-head"><h2>{t.features}</h2><p>{t.featuresNote}</p><Link href={`${root}/features`} className="premium-text-link">{t.explore}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link></div>
+            <div className="bento">
+              <article className="bento-main"><div><h3>{t.cards[1][0]}</h3><p>{t.cards[1][1]}</p></div><ProductPreview locale={locale} /></article>
+              <article className="bento-design"><div><h3>{t.cards[2][0]}</h3><p>{t.cards[2][1]}</p></div><ul className="bento-swatches" aria-hidden="true">{Object.values(themeRegistry).slice(2).map((theme) => <li key={theme.title} style={{ background: theme.colors.accent }} />)}</ul></article>
+              <article className="bento-chat"><div><h3>{t.cards[3][0]}</h3><p>{t.cards[3][1]}</p></div><p className="bento-bubble"><strong>{ar ? "طلب جديد · رقم مرجعي" : "New order · reference number"}</strong><span>{ar ? "أصناف الطلب والخيارات والمجموع، جاهزة للإرسال" : "Items, options and total, ready to send"}</span><small>{ar ? "مثال توضيحي" : "Illustrative example"}</small></p></article>
+              <article className="bento-safe"><span className="icon-tile"><ShieldCheck size={22} aria-hidden="true" /></span><div><h3>{t.cards[5][0]}</h3><p>{t.cards[5][1]}</p></div></article>
+            </div>
+          </> : <div className="wajhati-market-grid">{[0, 1, 2, 3, 4, 5].map((i) => <article className="panel" key={i}><span className="icon-tile"><Image src={icons[i]} alt="" unoptimized /></span><div><h3>{t.cards[i][0]}</h3><p>{t.cards[i][1]}</p></div></article>)}</div>}
         </section>
         <section className="wajhati-comparison" aria-labelledby="wajhati-compare-title">
           <div className="wajhati-market-width wajhati-market-section">
@@ -179,7 +191,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
       </>}
       {(section === "home" || section === "pricing") && <PublicPricing locale={locale} catalog={billing?.catalog ?? null} compact={section === "home"} requestedMarket={typeof search.market === "string" ? search.market : undefined} whatsapp={contact?.whatsapp} trialDays={billing?.trialDays} startHref={signup ? action : undefined} startLabel={signup ? actionLabel : undefined} />}
       {section === "home" && <section className="premium-setup wajhati-market-width"><span className="icon-tile"><Image src={spark} alt="" unoptimized /></span><div><h2>{ar ? "تفضّل أن نجهّز المتجر معك؟" : "Prefer a helping hand with setup?"}</h2><p>{ar ? "أنشئ متجرك بنفسك، أو اطلب خدمة التجهيز من لوحة متجرك عند توفرها. خدمة التجهيز منفصلة عن الاشتراك." : "Build it yourself, or request setup assistance from your store dashboard when available. Setup is separate from the subscription."}</p></div><div className="flex flex-wrap gap-2">{supportUrl && <a href={supportUrl} target="_blank" rel="noopener noreferrer" className="button button-primary"><MessageCircle size={18} aria-hidden="true" />{t.whatsappSupport}</a>}<Link href={`${root}/sign-in`} className="button button-secondary">{ar ? "الدخول إلى لوحة المتجر" : "Open your dashboard"}</Link></div></section>}
-      {(section === "faq" || section === "home") && <section className="wajhati-market-width wajhati-market-section wajhati-questions" aria-label={t.nav[3]}>{section === "home" && <h2>{t.faq}</h2>}{(section === "home" ? t.questions.slice(0, 4) : t.questions).map(([question, answer], index) => <details key={question} className="panel" open={index === 0}><summary>{question}<Plus size={20} aria-hidden="true" /></summary><p>{answer}</p></details>)}</section>}
+      {(section === "faq" || section === "home") && <section className="wajhati-market-width wajhati-market-section wajhati-questions" aria-label={t.nav[3]}>{section === "home" && <h2>{t.faq}</h2>}<FaqList items={section === "home" ? t.questions.slice(0, 4) : t.questions} searchable={section === "faq"} labels={ar ? { search: "ابحث في الأسئلة", none: "لا توجد أسئلة مطابقة. جرّب كلمة أخرى.", link: "رابط السؤال" } : { search: "Search the questions", none: "No matching questions. Try another word.", link: "Link to this question" }} /></section>}
       {section === "home" && <section className="wajhati-market-closing"><div className="wajhati-market-width"><h2>{t.closing}</h2><div className="mt-4 flex flex-wrap justify-center gap-3"><Link className="button wajhati-cta" href={action}>{actionLabel}</Link>{supportUrl && <a className="button wajhati-hero-secondary" href={supportUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} aria-hidden="true" />{t.whatsappSupport}</a>}</div></div></section>}
     </main>
     <footer className="wajhati-market-footer"><div className="wajhati-market-width"><div><Brand locale={locale} /><p>{t.description}</p></div>

@@ -20,6 +20,7 @@ import "../storefront-families.css";
 import "../premium-ui.css";
 import "../marketing-polish.css";
 import "../marketing-hero.css";
+import "../marketing-sections.css";
 import "../premium-storefront.css";
 import "../storefront-chrome.css";
 import type { Metadata } from "next";

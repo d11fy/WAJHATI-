@@ -73,3 +73,18 @@
     .store-theme .store-tile .store-picture img, .store-tile-action, .store-contact-fab { transition: none; }
   }
 
+  /* Product card: a visible action row, so touch screens (no hover) still show what the card does */
+  .store-tile-cta { display: inline-flex; align-items: center; gap: 0.4rem; margin-block-start: 0.35rem; color: var(--store-accent); font-size: 0.84rem; font-weight: 800; }
+  .store-tile-cta svg { transition: translate 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .store-theme .store-tile:hover .store-tile-cta svg { translate: 0.25rem 0; }
+  .store-theme .store-tile:hover .store-tile-cta svg:dir(rtl) { translate: -0.25rem 0; }
+  @media (prefers-reduced-motion: reduce) { .store-tile-cta svg { transition: none; } }
+
+  /* Quick add to cart on the card */
+  .store-quick { display: grid; gap: 0.5rem; padding: 0 clamp(0.65rem, 2vw, 1.15rem) clamp(0.65rem, 2vw, 1.15rem); }
+  .store-quick-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; min-block-size: 2.75rem; padding-inline: 1rem; border: 1.5px solid var(--store-accent); border-radius: 0.65rem; background: transparent; color: var(--store-accent); font: inherit; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+  .store-quick-button:hover:not(:disabled) { background: var(--store-accent); color: var(--store-on-accent); }
+  .store-quick-button:disabled { opacity: 0.6; cursor: progress; }
+  .store-quick-options { gap: 0.6rem; }
+  .store-quick-note { font-size: 0.82rem; font-weight: 700; }
+  .store-family .family-tech-promos .store-quick { display: none; }
