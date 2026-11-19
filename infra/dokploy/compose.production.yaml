@@ -302,6 +302,45 @@ services:
     cpus: 0.5
     pids_limit: 64
 
+  # Idle container that the Dokploy "Schedules" tab executes the backup commands in (Dokploy runs scheduled commands inside a
+  # running container). It listens on nothing, has no route from outside and does nothing on its own. Same credentials and
+  # limits as the one-off `backup` service. Schedules (UTC):
+  #   02:30 daily  node scripts/ops/backup.mjs all
+  #   08:30 daily  node scripts/ops/backup.mjs check
+  backup-runner:
+    <<: *restricted
+    build: { context: ../.., target: operations }
+    command: ["node", "-e", "setInterval(() => {}, 2147483647)"]
+    environment:
+      DAR_ENV: production
+      PUBLIC_SIGNUP_ENABLED: "false"
+      DAR_RELEASE: ${DAR_RELEASE:-}
+      BACKUP_DATABASE_URL: postgresql://dar_backup:${DAR_BACKUP_PASSWORD:-}@db:5432/dar_production
+      BACKUP_DIR: /backups
+      BACKUP_KEY_ID: ${BACKUP_KEY_ID:-}
+      BACKUP_KEY: ${BACKUP_KEY:-}
+      BACKUP_BUCKET: ${BACKUP_BUCKET:-}
+      BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      BACKUP_S3_FORCE_PATH_STYLE: ${BACKUP_S3_FORCE_PATH_STYLE:-true}
+      BACKUP_REGION: ${BACKUP_REGION:-us-east-1}
+      BACKUP_AWS_ACCESS_KEY_ID: ${BACKUP_AWS_ACCESS_KEY_ID:-}
+      BACKUP_AWS_SECRET_ACCESS_KEY: ${BACKUP_AWS_SECRET_ACCESS_KEY:-}
+      BACKUP_SOURCE_BUCKET: ${S3_BUCKET:-}
+      BACKUP_SOURCE_S3_ENDPOINT: ${S3_ENDPOINT:-}
+      BACKUP_SOURCE_AWS_ACCESS_KEY_ID: ${S3_BACKUP_READ_ACCESS_KEY_ID:-}
+      BACKUP_SOURCE_AWS_SECRET_ACCESS_KEY: ${S3_BACKUP_READ_SECRET_ACCESS_KEY:-}
+      BACKUP_MAX_AGE_HOURS: ${BACKUP_MAX_AGE_HOURS:-26}
+      DAR_ALERT_WEBHOOK: ${DAR_ALERT_WEBHOOK:-}
+      DAR_HEARTBEAT_URL: ${DAR_HEARTBEAT_URL:-}
+    volumes: [backup_spool:/backups]
+    tmpfs: ["/tmp:size=16m,uid=10001,gid=10001"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [data, egress]
+    mem_limit: 384m
+    cpus: 0.5
+    pids_limit: 64
+
   # Restore drill: restores the newest off-host backup into a throwaway database (dar_restore_drill), compares it with the live
   # database and drops it. Never writes to the live database. Run:  docker compose --profile drill run --rm drill
   drill:
