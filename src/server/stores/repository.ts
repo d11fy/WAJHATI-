@@ -55,6 +55,15 @@ export async function createStore(userId: string, input: StoreInput) {
 
 type PublicStore = Pick<typeof stores.$inferSelect, "name" | "slug" | "country" | "currency">;
 
+/** The name of a published store that is paused because its trial or subscription ended (migration 0029). Null for everything else. */
+export async function getPausedStore(slug: string, tx?: Transaction) {
+  if (!storeSlug.safeParse(slug).success) return null;
+  const result = await (tx ?? await database()).execute<{ name: string }>(sql`
+    select name from public.get_paused_store(${slug})
+  `);
+  return result.rows[0] ?? null;
+}
+
 export async function getPublicStore(slug: string, tx?: Transaction) {
   if (!storeSlug.safeParse(slug).success) return null;
   const result = await (tx ?? await database()).execute<PublicStore>(sql`

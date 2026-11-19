@@ -204,6 +204,13 @@
       "when": 1794901009829,
       "tag": "0028_public_store_expiry",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794987409829,
+      "tag": "0029_paused_store_notice",
+      "breakpoints": true
     }
   ]
 }

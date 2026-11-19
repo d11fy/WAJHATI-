@@ -14,7 +14,7 @@ import { changeRole, configurePlatform, mfaSeed, mfaVerify, platformAccess, plat
 import { confirmManualSubscription, contactSettings, grantManualSubscription, mailSecret, mailView, recordMailTest, saveContact, saveMail } from "../../src/server/platform/contact";
 import { mailProvider } from "../../src/server/auth/mail";
 import { openSmtpPassword, sealSmtpPassword } from "../../src/server/auth/smtp";
-import { createStore, getMemberStore, getPublicStore } from "../../src/server/stores/repository";
+import { createStore, getMemberStore, getPausedStore, getPublicStore } from "../../src/server/stores/repository";
 import { markLegacy } from "../fixtures/legacy.mjs";
 import { hash, makeEnrollment, markPlatform, otp } from "../fixtures/platform.mjs";
 
@@ -154,6 +154,7 @@ test("Phase 6A identity and operations on PostgreSQL", async (t) => {
     assert.equal(await supportOperation(first.token,tenant,"suspend","support"),"denied");
     assert.equal(await supportOperation(manager.token,tenant,"suspend","abuse"),"ok");
     assert.equal(await getPublicStore(slug),null);
+    assert.equal(await getPausedStore(slug),null,"a store suspended by the platform shows no paused notice");
     assert.equal((await getMemberStore(merchant.id,slug))?.published,true);
     assert.equal(await supportOperation(manager.token,tenant,"restore","support"),"ok");
     assert.ok(await getPublicStore(slug));
@@ -163,6 +164,7 @@ test("Phase 6A identity and operations on PostgreSQL", async (t) => {
     assert.equal((await merchantBilling(merchant.id,slug,1))?.usage.products,1);
     // With no trial, subscription or legacy access left the public page disappears, while the catalog and the publication state stay.
     assert.equal(await getPublicStore(slug),null);
+    assert.equal((await getPausedStore(slug))?.name,"Phase 6 Store");
     assert.equal((await getMemberStore(merchant.id,slug))?.published,true);
     assert.deepEqual(await saveProduct(merchant.id,slug,null,{...product,slug:"other"}),{error:"billingPublication"});
   });

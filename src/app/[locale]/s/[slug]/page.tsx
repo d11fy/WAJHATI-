@@ -6,7 +6,8 @@ import { catalogFilters, localizedValue } from "@/lib/catalog";
 import { designAssetPath } from "@/lib/theme-config";
 import { getPublicCatalog } from "@/server/catalog/public";
 import { routeLocale } from "@/server/locale";
-import { getPublicStore } from "@/server/stores/repository";
+import { PausedStore } from "@/components/paused-store";
+import { getPausedStore, getPublicStore } from "@/server/stores/repository";
 import { getPublishedDesign, getThemeHighlights } from "@/server/themes/public";
 import { storefrontContact } from "@/server/orders/public";
 
@@ -45,7 +46,11 @@ export default async function PublicStore({ params, searchParams }: PageProps<"/
   const { slug } = await params;
   const filters = catalogFilters(await searchParams);
   const data = await getPublicCatalog(slug, filters);
-  if (!data) notFound();
+  if (!data) {
+    const paused = await getPausedStore(slug);
+    if (paused) return <PausedStore locale={locale} name={paused.name} />;
+    notFound();
+  }
   const [design, contact] = await Promise.all([getPublishedDesign(slug), storefrontContact(slug)]);
   const unfiltered = !filters.q && !filters.category && !filters.availableOnly && filters.page === 1;
   const highlights = unfiltered && design.sections.some(({ id, visible }) => visible && (id === "categories" || id === "featured"))

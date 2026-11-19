@@ -7,6 +7,8 @@ import { ThemedProduct } from "@/components/store-theme/storefront";
 import { formatPrice, localizedValue } from "@/lib/catalog";
 import { getPublicProduct } from "@/server/catalog/public";
 import { routeLocale } from "@/server/locale";
+import { PausedStore } from "@/components/paused-store";
+import { getPausedStore } from "@/server/stores/repository";
 import { getPublishedDesign } from "@/server/themes/public";
 import { storefrontContact } from "@/server/orders/public";
 
@@ -38,7 +40,11 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/s/[sl
   const locale = await routeLocale(params);
   const { slug, productSlug } = await params;
   const product = await getProduct(slug, productSlug);
-  if (!product) notFound();
+  if (!product) {
+    const paused = await getPausedStore(slug);
+    if (paused) return <PausedStore locale={locale} name={paused.name} />;
+    notFound();
+  }
   const [design, contact] = await Promise.all([getPublishedDesign(slug), storefrontContact(slug)]);
   return <ThemedProduct locale={locale} design={design} contact={contact} product={product}
     store={{ slug, name: product.storeName, country: product.country, currency: product.currency }} />;

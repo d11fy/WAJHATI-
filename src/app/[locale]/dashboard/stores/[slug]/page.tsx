@@ -11,7 +11,7 @@ import { copy } from "@/lib/copy";
 import { orderCopy } from "@/lib/order-copy";
 import { requireUser } from "@/server/auth/session";
 import { routeLocale } from "@/server/locale";
-import { getPublicStore } from "@/server/stores/repository";
+import { getPausedStore, getPublicStore } from "@/server/stores/repository";
 import { readStoreOverview } from "@/server/stores/overview";
 
 export default async function StoreDashboard({ params }: PageProps<"/[locale]/dashboard/stores/[slug]">) {
@@ -30,6 +30,7 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
   const publicPath = `/${locale}/s/${store.slug}`;
   const merchantPath = `/${locale}/dashboard/stores/${store.slug}`;
   const live = store.published && Boolean(await getPublicStore(store.slug));
+  const paused = store.published && !live ? await getPausedStore(store.slug) : null;
   const operation = store.published ? "unpublishStore" : "publishStore";
   const metrics = [
     [ar ? "المنتجات المنشورة" : "Published products", data.publishedProducts],
@@ -73,6 +74,11 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
         <h1 className="min-w-0 wrap-anywhere text-3xl font-black sm:text-4xl"><bdi>{store.name}</bdi></h1>
         <Link className="button button-primary" href={`${merchantPath}/products/new`}>{catalog.addProduct}</Link>
       </header>
+      {paused && <section className="panel mb-5 flex flex-wrap items-center justify-between gap-4 border-amber-300 bg-amber-50 p-5 sm:p-6" role="status" data-testid="store-paused-notice">
+        <div className="min-w-0"><h2 className="text-lg font-black">{ar ? "متجرك متوقف مؤقتًا" : "Your store is temporarily paused"}</h2>
+          <p className="mt-1 text-sm text-muted">{ar ? "انتهت التجربة أو الاشتراك، فلا يظهر المتجر للزوار الآن. منتجاتك وبياناتك محفوظة كلها، ويعود المتجر فور تفعيل الاشتراك." : "Your trial or subscription has ended, so visitors cannot see the store right now. Your products and data are all kept, and the store returns as soon as you subscribe."}</p></div>
+        {store.role === "owner" ? <Link className="button button-primary" href={`${merchantPath}/billing`}>{ar ? "اشترك لإعادة تفعيل المتجر" : "Subscribe to bring it back"}</Link> : <p className="text-sm font-bold">{ar ? "تواصل مع مالك المتجر لتفعيل الاشتراك." : "Ask the store owner to subscribe."}</p>}
+      </section>}
       <section className="panel wajhati-workspace-highlight p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">

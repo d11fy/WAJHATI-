@@ -10,7 +10,7 @@ import { register, getSessionUser, revokeSession } from "../../src/server/auth/r
 import { cancelAtEnd, createPaymentRequest, downloadProof, listPaymentReviews, mayReviewPayments, merchantBilling, reviewRequest, submitProof, trialForStore } from "../../src/server/billing/repository";
 import { saveProduct, setStorePublication } from "../../src/server/catalog/merchant";
 import { closeDatabase } from "../../src/server/db/client";
-import { createStore, getMemberStore, getPublicStore, withMerchantStore } from "../../src/server/stores/repository";
+import { createStore, getMemberStore, getPausedStore, getPublicStore, withMerchantStore } from "../../src/server/stores/repository";
 import { publishDesign, saveDesign } from "../../src/server/themes/design";
 import { getPublishedDesign } from "../../src/server/themes/public";
 import { markLegacy } from "../fixtures/legacy.mjs";
@@ -274,6 +274,7 @@ test("billing workflow with real PostgreSQL, restricted runtime and maintenance 
     assert.equal((await merchantBilling(merchant.id, paidSlug, 1))?.state.status, "grace_period");
     // The renewal grace period keeps the public storefront online.
     assert.ok(await getPublicStore(paidSlug));
+    assert.equal(await getPausedStore(paidSlug), null, "a store in its grace period is live, not paused");
     await owner.query("update public.billing_subscriptions set cancel_at=(select ends_at from public.billing_periods where request_id=$2) where store_id=$1", [paidId, renewalId]);
     assert.equal((await merchantBilling(merchant.id, paidSlug, 1))?.state.status, "canceled");
     assert.equal(await getPublicStore(paidSlug), null, "a canceled store whose period ended is not public");
@@ -282,6 +283,8 @@ test("billing workflow with real PostgreSQL, restricted runtime and maintenance 
     assert.equal((await merchantBilling(merchant.id, paidSlug, 1))?.state.status, "suspended");
     // Once the paid period and the grace period have ended the storefront disappears everywhere it is read, and its data stays.
     assert.equal(await getPublicStore(paidSlug), null, "an expired store is not public");
+    assert.equal((await getPausedStore(paidSlug))?.name, "Billing test store", "visitors see a paused notice with only the store name");
+    assert.equal(await getPausedStore("no-such-store-" + randomUUID().slice(0, 8)), null, "an unknown store is not paused");
     assert.equal((await runtime.query("select count(*)::int n from public.catalog_public_products($1,null,null,'newest',false,0,25)", [paidSlug])).rows[0].n, 0);
     const { rows: [kept] } = await owner.query<{ n: number; slug: string | null }>(
       "select count(*)::int n, (array_agg(slug) filter (where state='published'))[1] as slug from public.catalog_products where store_id=$1 and state<>'archived'", [paidId]);
