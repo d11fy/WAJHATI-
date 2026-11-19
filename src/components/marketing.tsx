@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Globe2, Menu, MessageCircle, Plus, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Globe2, Languages, Menu, MessageCircle, Plus, ShieldCheck, XCircle } from "lucide-react";
 import bag from "@/assets/wajhati/bag.svg";
 import check from "@/assets/wajhati/check.svg";
 import credit from "@/assets/wajhati/credit.svg";
@@ -55,6 +55,7 @@ const strings = {
     products: "منتجًا", storage: "ميبيبايت للتخزين", analytics: "تحليلات موسعة", luxury: "تصميم Luxury Boutique", chat: "إدارة طلبات المحادثات",
     faq: "كل إجابة تحتاجها، في مكان واضح", faqIntro: "تعرّف على كيفية إنشاء متجرك والبيع وإدارة اشتراكك.",
     questions: [["هل أحتاج خبرة برمجية؟", "تدير متجرك والمنتجات والتصميم من لوحة التحكم."], ["كيف تصل طلبات العملاء إليّ؟", "يختار العميل قناة التواصل المفعّلة ويرسل ملخص سلة الطلب."], ["هل أستطيع تعديل المنتجات بعد نشرها؟", "نعم، يمكنك تعديلها من لوحة المتجر."], ["هل تختلف الميزات بين الشهري والسنوي؟", "الباقة الموحدة توفر الميزات نفسها في الدورتين. تعرض صفحة الأسعار المبلغ الكامل وحدود الاستخدام لكل عرض منشور."], ["هل أستطيع تغيير الباقة؟", "تراجع الخيارات المتاحة من صفحة الفوترة في متجرك."], ["هل يحتاج الزبون إلى حساب؟", "يمكن للعميل تصفح المتجر المنشور وإرسال الطلب عبر قناة التواصل المتاحة."], ["كيف يتم تفعيل الاشتراك أو تجديده؟", "يتواصل التاجر مع فريق واجهتي عبر واتساب الرسمي، ثم تفعّل إدارة المنصة الاشتراك للمتجر المحدد بعد تأكيد الدفعة."]],
+    trust: ["بدون بطاقة بنكية للتسجيل", "طلبات عبر واتساب وإنستغرام", "عربي أولاً، وبلغتين"],
     closing: "متجرك يبدأ من واجهة واضحة.", accessClosed: "التسجيل العام غير متاح حاليًا. يمكن لأصحاب الحسابات تسجيل الدخول.",
     localAccess: "إنشاء حساب تجريبي", localNote: "التسجيل التجريبي متاح على هذا الجهاز فقط.",
     marketHelp: "تظهر الأسواق والعملات التي لديها عرض منشور وطريقة دفع نشطة. اختر دورة الفوترة لعرض السعر الكامل بتلك العملة.",
@@ -92,6 +93,7 @@ const strings = {
     products: "products", storage: "MiB of storage", analytics: "Enhanced analytics", luxury: "Luxury Boutique theme", chat: "Chat order management",
     faq: "Find the answers you need", faqIntro: "Learn how to create a store, sell and manage your subscription.",
     questions: [["Do I need to code?", "Manage your store, products and design in the dashboard."], ["How do customers send orders?", "Customers choose an enabled contact channel and send a cart summary."], ["Can I edit products after publishing?", "Yes, from the merchant dashboard."], ["Do monthly and annual features differ?", "The unified plan includes the same features in both intervals. Pricing shows the full amount and usage limits for each published offer."], ["Can I change plans?", "Review available options in your store’s billing area."], ["Do customers need accounts?", "Visitors can browse a published store and send orders through an enabled channel."], ["How is my subscription activated or renewed?", "Contact the WAJHATI team via official WhatsApp; platform administration activates the subscription for your selected store after payment confirmation."]],
+    trust: ["No bank card to sign up", "Orders via WhatsApp and Instagram", "Arabic-first, two languages"],
     closing: "Give your store a place of its own.", accessClosed: "Public registration is currently closed. Existing account holders can sign in.",
     localAccess: "Create a test account", localNote: "Test registration is available on this device only.",
     marketHelp: "Markets and currencies appear when a published offer and an active payment method are available. Choose a billing interval to see its full price in that currency.",
@@ -146,6 +148,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
             <p className="wajhati-hero-copy">{section === "home" ? t.intro : section === "features" ? t.featuresIntro : section === "pricing" ? t.pricingNote : t.faqIntro}</p>
             {(section === "home" || section === "features") && <div className="wajhati-hero-actions"><Link href={action} className="button wajhati-cta">{actionLabel}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link>{section === "home" && <a href="#themes" className="button wajhati-hero-secondary">{ar ? "استكشف التصاميم" : "Explore the designs"}</a>}</div>}
             {(section === "home" || section === "features") && accessNote && <p className="wajhati-market-trial">{accessNote}</p>}
+            {section === "home" && <ul className="wajhati-trust-row" aria-label={ar ? "لماذا واجهتي" : "Why WAJHATI"}>{t.trust.map((item, index) => <li key={item}>{[<ShieldCheck key="a" size={15} aria-hidden="true" />, <MessageCircle key="b" size={15} aria-hidden="true" />, <Languages key="c" size={15} aria-hidden="true" />][index]}{item}</li>)}</ul>}
             {section === "home" && publicSignup && billing?.trialDays && <p className="wajhati-market-trial">{ar ? `تجربة لمدة ${number.format(billing.trialDays)} أيام للحسابات المؤهلة` : `${number.format(billing.trialDays)}-day trial for eligible accounts`}</p>}
           </div>
           {section === "home" && <BrandStage locale={locale} interactive />}

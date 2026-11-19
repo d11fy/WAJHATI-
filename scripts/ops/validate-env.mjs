@@ -21,7 +21,11 @@ export function validateEnv(env, scope = "app") {
     return url;
   };
   const required = (key) => { if (!env[key] || /REPLACE_ME|CHANGE_ME/i.test(env[key])) errors.push(key); };
-  if (deployed && (env.PUBLIC_SIGNUP_ENABLED !== "false" || env.DAR_LOCAL_SIGNUP === "true" || env.DAR_LOCAL_PDF === "true")) errors.push("PUBLIC_SIGNUP_ENABLED");
+  // Public sign-up is closed everywhere except the production application, and only once the owner has approved the legal pages.
+  // Staging, the workers, the mailer and the backup jobs never open it. The application also needs a verified mail provider
+  // and a trusted client IP header before it shows a sign-up form (publicSignupEnabled()).
+  const publicSignupAllowed = env.PUBLIC_SIGNUP_ENABLED === "true" && scope === "app" && isProduction && env.LEGAL_APPROVED === "true";
+  if (deployed && ((env.PUBLIC_SIGNUP_ENABLED !== "false" && !publicSignupAllowed) || env.DAR_LOCAL_SIGNUP === "true" || env.DAR_LOCAL_PDF === "true")) errors.push("PUBLIC_SIGNUP_ENABLED");
   if (isProduction && env.DAR_STAGING_LOCAL === "true") errors.push("DAR_STAGING_LOCAL");
   if (scope === "app") {
     // The Terms and Privacy Policy ship as drafts. Production must not boot until the owner has had them

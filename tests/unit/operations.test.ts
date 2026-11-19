@@ -22,9 +22,24 @@ test("production validation fails closed for local mail, privileged credentials 
     PAYMENT_RENDERER_SOCKET: "/run/dar-pdf/worker.sock", TRUSTED_CLIENT_IP_HEADER: "x-real-ip",
     S3_BUCKET: "dar-production-media-fixture", S3_READY_KEY: "ops/readiness", MAIL_PROVIDER: "resend", MAIL_FROM: "mail@example.test", RESEND_API_KEY: "fixture" };
   assert.deepEqual(validateEnv(env), []);
-  const invalid = validateEnv({ ...env, IDENTITY_DATABASE_URL: env.DATABASE_URL, MAIL_PROVIDER: "local", PUBLIC_SIGNUP_ENABLED: "true",
+  const invalid = validateEnv({ ...env, IDENTITY_DATABASE_URL: env.DATABASE_URL, MAIL_PROVIDER: "local", PUBLIC_SIGNUP_ENABLED: "yes",
     MIGRATION_DATABASE_URL: env.DATABASE_URL, S3_ENDPOINT: "http://example.test", PAYMENT_RENDERER_SOCKET: "" });
   for (const field of ["DATABASE_ROLE_ISOLATION", "MAIL_PROVIDER", "PUBLIC_SIGNUP_ENABLED", "MIGRATION_DATABASE_URL", "S3_ENDPOINT", "PAYMENT_RENDERER_SOCKET"]) assert.ok(invalid.includes(field));
+});
+
+test("public sign-up opens only on the production application after the legal pages are approved", () => {
+  const env = { DAR_ENV: "production", PUBLIC_SIGNUP_ENABLED: "true", LEGAL_APPROVED: "true", APP_ORIGIN: "https://example.test",
+    DATABASE_URL: "postgresql://runtime:fixture-one@db/dar_production", IDENTITY_DATABASE_URL: "postgresql://identity:fixture-two@db/dar_production",
+    PLATFORM_MFA_KEY: key(), OPS_METRICS_TOKEN: key(), PAYMENT_PROOF_KEYRING: JSON.stringify({ v2: key() }), PAYMENT_PROOF_ACTIVE_KEY: "v2",
+    PAYMENT_RENDERER_SOCKET: "/run/dar-pdf/worker.sock", TRUSTED_CLIENT_IP_HEADER: "x-real-ip",
+    S3_BUCKET: "dar-production-media-fixture", S3_READY_KEY: "ops/readiness", MAIL_PROVIDER: "resend", MAIL_FROM: "mail@example.test", RESEND_API_KEY: "fixture" };
+  assert.deepEqual(validateEnv(env), [], "production, app, legal approved");
+  assert.ok(validateEnv({ ...env, LEGAL_APPROVED: "false" }).includes("PUBLIC_SIGNUP_ENABLED"), "not before the legal approval");
+  assert.ok(validateEnv({ ...env, DAR_ENV: "staging", S3_BUCKET: "dar-staging-media-fixture", DATABASE_URL: "postgresql://runtime:fixture-one@db/dar_staging",
+    IDENTITY_DATABASE_URL: "postgresql://identity:fixture-two@db/dar_staging", MAIL_ALLOWED_RECIPIENTS: "qa@example.test" }).includes("PUBLIC_SIGNUP_ENABLED"), "never on staging");
+  assert.ok(validateEnv({ DAR_ENV: "production", PUBLIC_SIGNUP_ENABLED: "true", LEGAL_APPROVED: "true", APP_ORIGIN: "https://example.test",
+    MEDIA_WORKER_DATABASE_URL: "postgresql://worker:fixture-w@db/dar_production", S3_BUCKET: "dar-production-media-fixture" }, "worker").includes("PUBLIC_SIGNUP_ENABLED"), "never on a worker");
+  assert.ok(validateEnv({ ...env, PUBLIC_SIGNUP_ENABLED: "maybe" }).includes("PUBLIC_SIGNUP_ENABLED"), "only the exact word true");
 });
 
 test("production refuses to start while the legal documents are unapproved, but staging and development do not", () => {

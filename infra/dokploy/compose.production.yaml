@@ -25,7 +25,9 @@ services:
     environment:
       DAR_ENV: production
       APP_ORIGIN: ${APP_ORIGIN:-https://wajhati.store}
-      PUBLIC_SIGNUP_ENABLED: "false"
+      # Closed unless the owner sets PUBLIC_SIGNUP_ENABLED=true. The validator only accepts true on this service and only
+      # when LEGAL_APPROVED=true. The sign-up form additionally needs a verified mail provider (publicSignupEnabled()).
+      PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-false}
       LEGAL_APPROVED: ${LEGAL_APPROVED:-false}
       TRUSTED_CLIENT_IP_HEADER: x-real-ip
       DATABASE_URL: postgresql://dar_runtime:${DAR_RUNTIME_PASSWORD:?set DAR_RUNTIME_PASSWORD}@db:5432/dar_production

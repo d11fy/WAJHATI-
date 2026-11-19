@@ -18,6 +18,7 @@ import "../workspace-ui.css";
 import "../storefront.css";
 import "../storefront-families.css";
 import "../premium-ui.css";
+import "../marketing-polish.css";
 import "../premium-storefront.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
