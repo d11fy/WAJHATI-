@@ -212,6 +212,34 @@ services:
     mem_limit: 384m
     pids_limit: 80
 
+  # One-time creation of the first platform owner. The owner puts OWNER_EMAIL, OWNER_NAME and OWNER_PASSWORD in the Dokploy
+  # environment (the password never appears in a command line or in this file), runs it once, then deletes OWNER_PASSWORD:
+  #   docker compose --profile owner run --rm owner
+  # It provisions the account, marks the email verified and assigns the owner role. MFA enrolment is a separate, mandatory step.
+  owner:
+    <<: *restricted
+    restart: "no"
+    profiles: [owner]
+    build: { context: ../.., target: operations }
+    environment:
+      MIGRATION_DATABASE_URL: postgresql://dar_owner:${DAR_OWNER_PASSWORD:-}@db:5432/dar_production
+      OWNER_EMAIL: ${OWNER_EMAIL:?set OWNER_EMAIL}
+      OWNER_NAME: ${OWNER_NAME:-Owner}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:?set OWNER_PASSWORD}
+    command:
+      - sh
+      - -c
+      - >-
+        printf '%s' "$$OWNER_PASSWORD" | node --conditions=react-server --import tsx scripts/billing-operator.ts provision-account "$$OWNER_EMAIL" "$$OWNER_NAME"
+        && node --conditions=react-server --import tsx scripts/billing-operator.ts verify-email "$$OWNER_EMAIL"
+        && node --conditions=react-server --import tsx scripts/platform-operator.ts bootstrap-owner "$$OWNER_EMAIL"
+    tmpfs: ["/tmp:size=48m,uid=10001,gid=10001"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [data]
+    mem_limit: 384m
+    pids_limit: 80
+
   # Encrypted backups of production (database, media, configuration manifest). Optional but required: a real restore test must pass before launch.
   backup:
     <<: *restricted
