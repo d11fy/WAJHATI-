@@ -77,6 +77,7 @@ Run steps 3 onward only after the owner has approved the DNS record and the bran
    ```
    The bootstrap refuses to run twice, refuses empty or short passwords and creates nothing in either case. The operator applies the migrations.
 4. **Everything else.** Deploy from the Dokploy UI (or `docker compose -f infra/dokploy/compose.staging.yaml up -d`). Wait until `app`, `pdf`, `db`, `worker` and `mailer` are healthy.
+4a. **Readiness marker.** `/api/ready` stays at 503 (`storage_failed` in the app log) until the media bucket contains an object named `ops/readiness`: the app issues a `HeadObject` on it. Create the `ops` folder and upload a tiny file named `readiness` in the R2 dashboard (or with the S3 API) once per bucket. Production and staging both need it. Found during the first production deployment.
 5. **Verify access protection** (from your machine):
    ```bash
    curl -sI https://staging.wajhati.store/ar | head -1                         # HTTP/2 401
