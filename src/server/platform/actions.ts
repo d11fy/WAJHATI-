@@ -134,8 +134,8 @@ export async function smtpSaveAction(locale: string, _previous: AdminState, form
     host: input(form, "host"),
     port: input(form, "port"),
     user: input(form, "user"),
-    from: input(form, "from"),
-    name: input(form, "name"),
+    from: input(form, "fromEmail"),
+    name: input(form, "fromName"),
     replyTo: input(form, "replyTo").trim(),
   });
   const password = input(form, "password");
@@ -144,7 +144,7 @@ export async function smtpSaveAction(locale: string, _previous: AdminState, form
     const current = await readUser();
     if (!current || !await consumeLimit(`platform:smtp:${current.id}`, 12)) return "unavailable";
     const cipher = password ? sealSmtpPassword(password) : null;
-    const result = await saveMail(await readSessionToken(), parsed.data, cipher, enabled(form, "smtpEnabled"));
+    const result = await saveMail(await readSessionToken(), parsed.data, cipher, enabled(form, "enabled"));
     if (result === "ok") revalidatePath(`/${locale}/platform`, "layout");
     return result;
   } catch { return "unavailable"; }
