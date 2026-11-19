@@ -302,6 +302,34 @@ services:
     cpus: 0.5
     pids_limit: 64
 
+  # Restore drill: restores the newest off-host backup into a throwaway database (dar_restore_drill), compares it with the live
+  # database and drops it. Never writes to the live database. Run:  docker compose --profile drill run --rm drill
+  drill:
+    <<: *restricted
+    restart: "no"
+    profiles: [drill]
+    build: { context: ../.., target: operations }
+    command: ["node", "scripts/ops/restore-drill.mjs"]
+    environment:
+      DAR_ENV: production
+      DRILL_ADMIN_URL: postgresql://dar_admin:${DAR_DB_ADMIN_PASSWORD:-}@db:5432/dar_production
+      BACKUP_DIR: /backups
+      BACKUP_KEY_ID: ${BACKUP_KEY_ID:-}
+      BACKUP_KEY: ${BACKUP_KEY:-}
+      BACKUP_BUCKET: ${BACKUP_BUCKET:-}
+      BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      BACKUP_S3_FORCE_PATH_STYLE: ${BACKUP_S3_FORCE_PATH_STYLE:-true}
+      BACKUP_REGION: ${BACKUP_REGION:-us-east-1}
+      BACKUP_AWS_ACCESS_KEY_ID: ${BACKUP_AWS_ACCESS_KEY_ID:-}
+      BACKUP_AWS_SECRET_ACCESS_KEY: ${BACKUP_AWS_SECRET_ACCESS_KEY:-}
+    volumes: [backup_spool:/backups]
+    tmpfs: ["/tmp:size=256m,uid=10001,gid=10001"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [data, egress]
+    mem_limit: 512m
+    pids_limit: 80
+
   backup-check:
     <<: *restricted
     restart: "no"
