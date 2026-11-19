@@ -1,0 +1,75 @@
+/*
+ * Shared storefront upgrades for all eight themes: sale badges, an interactive product card, an announcement line, a trust strip,
+ * a floating contact button, a sticky mobile cart bar and image-loading skeletons.
+ * Every rule reads the theme's own variables (--store-bg, --store-ink, --store-accent, --store-on-accent, --store-line, --store-wash),
+ * so each theme keeps its colors; spacing and icon size are the same everywhere. Logical properties keep Arabic and English identical.
+ */
+  /* ---------- Image loading skeleton (only while a real image is on its way) ---------- */
+  .store-theme .store-picture:has(img) {
+    background-image: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--store-bg) 60%, transparent) 50%, transparent 80%);
+    background-size: 220% 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes store-shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+    .store-theme .store-picture:has(img) { animation: store-shimmer 1.6s linear infinite; }
+  }
+
+  /* ---------- Product card ---------- */
+  .store-theme .store-tile .store-picture img { transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1), filter 300ms ease; }
+  .store-theme .store-tile[data-available="false"] .store-picture img { filter: grayscale(0.85); opacity: 0.72; }
+  .store-badge {
+    position: absolute; z-index: 2; inset-block-start: 0.6rem; inset-inline-start: 0.6rem; padding: 0.2rem 0.6rem; border-radius: 0.4rem;
+    font-size: 0.78rem; font-weight: 800; line-height: 1.5; font-variant-numeric: tabular-nums; box-shadow: 0 2px 8px rgb(0 0 0 / 22%);
+  }
+  .store-badge-sale { background: #c4221a; color: #fff; }
+  .store-tile-action {
+    position: absolute; z-index: 2; inset-inline: 0.6rem; inset-block-end: 0.6rem; display: inline-flex; justify-content: center; align-items: center; gap: 0.4rem;
+    min-block-size: 2.25rem; padding-inline: 0.75rem; border-radius: 0.5rem; background: var(--store-bg); color: var(--store-ink);
+    border: 1px solid var(--store-line); font-size: 0.82rem; font-weight: 800; box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+    opacity: 0; transform: translateY(0.6rem); pointer-events: none; transition: opacity 220ms ease, transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (hover: hover) {
+    .store-theme .store-tile:hover .store-picture img { transform: scale(1.06); }
+    .store-theme .store-tile:hover .store-tile-action, .store-theme .store-tile:focus-within .store-tile-action { opacity: 1; transform: none; }
+  }
+  @media (hover: none) { .store-tile-action { display: none; } }
+
+  /* ---------- Announcement line ---------- */
+  .store-announcement {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.2rem 0.9rem; padding: 0.55rem 1rem;
+    background: var(--store-ink); color: var(--store-bg); font-size: 0.82rem; font-weight: 700; line-height: 1.6; text-align: center;
+  }
+  .store-announcement svg { flex: none; }
+  .store-announcement-note { font-weight: 500; }
+
+  /* ---------- Trust strip ---------- */
+  .store-trust { margin-block-start: clamp(2rem, 5vw, 4rem); border-block: 1px solid var(--store-line); background: var(--store-wash); }
+  .store-trust ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.85rem 1.5rem; padding-block: 1.15rem; }
+  .store-trust li { display: flex; align-items: center; gap: 0.65rem; font-size: 0.86rem; font-weight: 700; line-height: 1.55; }
+  .store-trust svg { flex: none; color: var(--store-accent); }
+  @media (max-width: 63.99rem) { .store-trust ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 39.99rem) { .store-trust ul { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; } }
+
+  /* ---------- Floating contact button ---------- */
+  .store-contact-fab {
+    position: fixed; z-index: 45; inset-block-end: 1.25rem; inset-inline-end: 1.25rem; display: grid; place-items: center; inline-size: 3.5rem; block-size: 3.5rem;
+    border-radius: 50%; background: #128c7e; color: #fff; box-shadow: 0 10px 26px rgb(0 0 0 / 28%); transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .store-contact-fab:hover { transform: translateY(-3px) scale(1.04); text-decoration: none; }
+  .store-contact-fab:focus-visible { outline: 3px solid var(--store-ink); outline-offset: 3px; }
+
+  /* ---------- Sticky mobile cart bar (the header cart link, pinned to the bottom edge on phones) ---------- */
+  @media (max-width: 39.99rem) {
+    .store-theme[data-theme] .store-tools .store-cart-link {
+      position: fixed; z-index: 44; inset-inline: 0.75rem; inset-block-end: 0.75rem; justify-content: center; gap: 0.5rem; min-block-size: 3.25rem; min-inline-size: 0; border: 0; border-radius: 0.9rem;
+      padding-inline: 1rem; background: var(--store-accent); color: var(--store-on-accent); font-size: 0.95rem; font-weight: 800; box-shadow: 0 12px 30px rgb(0 0 0 / 30%);
+    }
+    .store-theme[data-theme] .store-tools .store-cart-link span { position: static; inline-size: auto; block-size: auto; overflow: visible; clip-path: none; white-space: normal; }
+    .store-theme:has(.store-cart-link) { padding-block-end: 4.75rem; }
+    .store-theme:has(.store-cart-link) .store-contact-fab { inset-block-end: 4.9rem; inset-inline-end: 0.9rem; inline-size: 3.1rem; block-size: 3.1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .store-theme .store-tile .store-picture img, .store-tile-action, .store-contact-fab { transition: none; }
+  }
+

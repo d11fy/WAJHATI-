@@ -10,7 +10,8 @@ import spark from "@/assets/wajhati/spark.svg";
 import { LegalLinks } from "@/components/legal-links";
 import { Brand } from "@/components/site-header";
 import { ProductPreview } from "@/components/product-preview";
-import { BrandStage } from "@/components/brand-stage";
+import { HomeHero } from "@/components/home-hero";
+import { heroThemes } from "@/components/hero-themes";
 import { ThemeShowcase } from "@/components/theme-showcase";
 import { PublicPricing } from "@/components/public-pricing";
 import { registrationAvailable } from "@/lib/billing";
@@ -131,7 +132,7 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
   const supportUrl = subscriptionContact(contact?.whatsapp ?? defaultPlatformWhatsapp, locale);
   const number = new Intl.NumberFormat(locale);
   const nav = <><Link href={`${root}#themes`}>{ar ? "الثيمات" : "Themes"}</Link>{t.nav.map((label, index) => <Link key={label} href={links[index]} aria-current={links[index] === root + page ? "page" : undefined}>{label}</Link>)}</>;
-  return <div className="wajhati-platform wajhati-marketing">
+  return <div className={`wajhati-platform wajhati-marketing${section === "home" ? " wajhati-marketing-home" : ""}`}>
     <a className="sr-only focus:not-sr-only" href="#content">{ar ? "انتقل إلى المحتوى" : "Skip to content"}</a>
     <header className="wajhati-market-header"><nav className="wajhati-market-width" aria-label={t.menu}>
       <Brand locale={locale} /><div className="wajhati-market-links">{nav}</div>
@@ -141,29 +142,24 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
       <details className="wajhati-mobile-nav"><summary aria-label={t.menu}><Menu size={23} aria-hidden="true" /></summary><div>{nav}<Link href={`/${alt}${page}`} lang={alt} hrefLang={alt}>{copy[locale].switchLanguage}</Link><Link href={`${root}/sign-in`}>{copy[locale].signIn}</Link>{supportUrl && <a href={supportUrl} target="_blank" rel="noopener noreferrer">{t.whatsappSupport}</a>}</div></details>
     </nav></header>
     <main id="content">
-      <section className={`wajhati-market-hero wajhati-${section}-hero`}>
+      {section === "home" ? <HomeHero locale={locale} startHref={action} startLabel={actionLabel} note={accessNote ?? (publicSignup && billing?.trialDays ? (ar ? `تجربة لمدة ${number.format(billing.trialDays)} أيام للحسابات المؤهلة` : `${number.format(billing.trialDays)}-day trial for eligible accounts`) : null)} copy={{ badge: t.description, title: ar ? ["تجارتك تستاهل", "واجهة تليق فيها."] : ["Your ambition.", "Your signature store."], intro: t.intro, explore: ar ? "استكشف التصاميم" : "Explore the designs", themesLabel: ar ? "اختر ثيمًا لترى المتجر" : "Pick a theme to preview the store", facts: t.trust }} themes={heroThemes(locale)} factIcons={[<ShieldCheck key="a" size={20} aria-hidden="true" />, <MessageCircle key="b" size={20} aria-hidden="true" />, <Languages key="c" size={20} aria-hidden="true" />]} /> : <section className={`wajhati-market-hero wajhati-${section}-hero`}>
         <div className="wajhati-market-width wajhati-hero-inner">
-          <div>{section === "home" && <p className="wajhati-market-kicker">{t.description}</p>}
-            <h1>{section === "home" ? <>{ar ? "تجارتك تستاهل" : "Your ambition."}<br /><em>{ar ? "واجهة تليق فيها." : "Your signature store."}</em></> : section === "features" ? t.featuresHero : section === "pricing" ? t.pricing : t.faq}</h1>
-            <p className="wajhati-hero-copy">{section === "home" ? t.intro : section === "features" ? t.featuresIntro : section === "pricing" ? t.pricingNote : t.faqIntro}</p>
-            {(section === "home" || section === "features") && <div className="wajhati-hero-actions"><Link href={action} className="button wajhati-cta">{actionLabel}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link>{section === "home" && <a href="#themes" className="button wajhati-hero-secondary">{ar ? "استكشف التصاميم" : "Explore the designs"}</a>}</div>}
-            {(section === "home" || section === "features") && accessNote && <p className="wajhati-market-trial">{accessNote}</p>}
-            {section === "home" && <ul className="wajhati-trust-row" aria-label={ar ? "لماذا واجهتي" : "Why WAJHATI"}>{t.trust.map((item, index) => <li key={item}>{[<ShieldCheck key="a" size={15} aria-hidden="true" />, <MessageCircle key="b" size={15} aria-hidden="true" />, <Languages key="c" size={15} aria-hidden="true" />][index]}{item}</li>)}</ul>}
-            {section === "home" && publicSignup && billing?.trialDays && <p className="wajhati-market-trial">{ar ? `تجربة لمدة ${number.format(billing.trialDays)} أيام للحسابات المؤهلة` : `${number.format(billing.trialDays)}-day trial for eligible accounts`}</p>}
+          <div>
+            <h1>{section === "features" ? t.featuresHero : section === "pricing" ? t.pricing : t.faq}</h1>
+            <p className="wajhati-hero-copy">{section === "features" ? t.featuresIntro : section === "pricing" ? t.pricingNote : t.faqIntro}</p>
+            {section === "features" && <div className="wajhati-hero-actions"><Link href={action} className="button wajhati-cta">{actionLabel}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link></div>}
+            {section === "features" && accessNote && <p className="wajhati-market-trial">{accessNote}</p>}
           </div>
-          {section === "home" && <BrandStage locale={locale} interactive />}
         </div>
-      </section>
-      {section === "home" && <div className="wajhati-value-band"><ol className="wajhati-market-width">{t.values.map((value, index) => <li key={value}><span>{String(index + 1).padStart(2, "0")}</span>{value}</li>)}</ol></div>}
+      </section>}
       {section === "home" && <ThemeShowcase locale={locale} />}
       {(section === "home" || section === "features") && <>
         <section className="wajhati-market-width wajhati-market-section" aria-label={t.features}>
-          {section === "home" && <div className="premium-workspace-intro"><div><p className="wajhati-section-kicker">{ar ? "خلف كل متجر جميل، إدارة أبسط" : "BEHIND EVERY GREAT STORE"}</p><h2>{t.features}</h2><p>{t.featuresNote}</p><Link href={`${root}/features`} className="premium-text-link">{t.explore}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link></div><ProductPreview locale={locale} /></div>}
+          {section === "home" && <div className="premium-workspace-intro"><div><h2>{t.features}</h2><p>{t.featuresNote}</p><Link href={`${root}/features`} className="premium-text-link">{t.explore}<ArrowRight size={18} className="arrow" aria-hidden="true" /></Link></div><ProductPreview locale={locale} /></div>}
           <div className={section === "home" ? "wajhati-feature-band" : "wajhati-market-grid"}>{(section === "home" ? [1, 3, 2] : [0, 1, 2, 3, 4, 5]).map((i) => <article className={section === "home" ? undefined : "panel"} key={i}><span className="icon-tile"><Image src={icons[i]} alt="" unoptimized /></span><div><h3>{t.cards[i][0]}</h3><p>{t.cards[i][1]}</p></div></article>)}</div>
         </section>
         <section className="wajhati-comparison" aria-labelledby="wajhati-compare-title">
           <div className="wajhati-market-width wajhati-market-section">
-            <p className="wajhati-section-kicker">{t.compareKicker}</p>
             <h2 id="wajhati-compare-title">{t.compareTitle}</h2>
             <div className="wajhati-comparison-grid">
               <article className="wajhati-comparison-card wajhati-comparison-before">
@@ -177,13 +173,13 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
             </div>
           </div>
         </section>
-        <section id="how" className="wajhati-how"><div className="wajhati-market-width wajhati-market-section"><p className="wajhati-section-kicker">{t.quickGuide}</p><h2>{t.how}</h2><p>{t.howNote}</p>
+        <section id="how" className="wajhati-how"><div className="wajhati-market-width wajhati-market-section"><h2>{t.how}</h2><p>{t.howNote}</p>
           <ol>{t.steps.map(([title, note], index) => <li key={title}><span>{number.format(index + 1)}</span><strong>{index === 0 && !signup ? copy[locale].signIn : title}</strong><p>{note}</p></li>)}</ol>
         </div></section>
       </>}
       {(section === "home" || section === "pricing") && <PublicPricing locale={locale} catalog={billing?.catalog ?? null} compact={section === "home"} requestedMarket={typeof search.market === "string" ? search.market : undefined} whatsapp={contact?.whatsapp} trialDays={billing?.trialDays} startHref={signup ? action : undefined} startLabel={signup ? actionLabel : undefined} />}
       {section === "home" && <section className="premium-setup wajhati-market-width"><span className="icon-tile"><Image src={spark} alt="" unoptimized /></span><div><h2>{ar ? "تفضّل أن نجهّز المتجر معك؟" : "Prefer a helping hand with setup?"}</h2><p>{ar ? "أنشئ متجرك بنفسك، أو اطلب خدمة التجهيز من لوحة متجرك عند توفرها. خدمة التجهيز منفصلة عن الاشتراك." : "Build it yourself, or request setup assistance from your store dashboard when available. Setup is separate from the subscription."}</p></div><div className="flex flex-wrap gap-2">{supportUrl && <a href={supportUrl} target="_blank" rel="noopener noreferrer" className="button button-primary"><MessageCircle size={18} aria-hidden="true" />{t.whatsappSupport}</a>}<Link href={`${root}/sign-in`} className="button button-secondary">{ar ? "الدخول إلى لوحة المتجر" : "Open your dashboard"}</Link></div></section>}
-      {(section === "faq" || section === "home") && <section className="wajhati-market-width wajhati-market-section wajhati-questions" aria-label={t.nav[3]}>{section === "home" && <><p className="wajhati-section-kicker">{t.nav[3]}</p><h2>{t.faq}</h2></>}{(section === "home" ? t.questions.slice(0, 4) : t.questions).map(([question, answer], index) => <details key={question} className="panel" open={index === 0}><summary>{question}<Plus size={20} aria-hidden="true" /></summary><p>{answer}</p></details>)}</section>}
+      {(section === "faq" || section === "home") && <section className="wajhati-market-width wajhati-market-section wajhati-questions" aria-label={t.nav[3]}>{section === "home" && <h2>{t.faq}</h2>}{(section === "home" ? t.questions.slice(0, 4) : t.questions).map(([question, answer], index) => <details key={question} className="panel" open={index === 0}><summary>{question}<Plus size={20} aria-hidden="true" /></summary><p>{answer}</p></details>)}</section>}
       {section === "home" && <section className="wajhati-market-closing"><div className="wajhati-market-width"><h2>{t.closing}</h2><div className="mt-4 flex flex-wrap justify-center gap-3"><Link className="button wajhati-cta" href={action}>{actionLabel}</Link>{supportUrl && <a className="button wajhati-hero-secondary" href={supportUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} aria-hidden="true" />{t.whatsappSupport}</a>}</div></div></section>}
     </main>
     <footer className="wajhati-market-footer"><div className="wajhati-market-width"><div><Brand locale={locale} /><p>{t.description}</p></div>

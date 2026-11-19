@@ -1,4 +1,4 @@
-import { Globe2, ImageOff, Store as StoreIcon } from "lucide-react";
+import { Calculator, Eye, Globe2, Hash, ImageOff, Languages, MessageCircle, Store as StoreIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
@@ -7,6 +7,7 @@ import { AddToCart, CartLink } from "@/components/orders/cart";
 import { DemoAddToCart, DemoCartLink } from "@/components/demo-cart";
 import { formatPrice, localizedValue, type CatalogFilters, type Currency } from "@/lib/catalog";
 import { catalogCopy } from "@/lib/catalog-copy";
+import { storeChromeCopy } from "@/lib/store-chrome-copy";
 import { otherLocale, type Locale } from "@/lib/i18n";
 import { designAssetPath, isFamilyTheme, type ThemeConfig, type FamilyThemeId } from "@/lib/theme-config";
 import { themeCopy } from "@/lib/theme-copy";
@@ -36,9 +37,10 @@ export function ThemeSurface({ design, children }: { design: ThemeConfig; childr
   return <div className={isFamilyTheme(design.theme) ? "store-theme store-family" : "store-theme"} data-theme={design.theme} data-font={design.font} style={style}>{children}</div>;
 }
 
-export function Picture({ source, alt, className = "", eager = false }: { source: string | null; alt: string; className?: string; eager?: boolean }) {
+export function Picture({ source, alt, className = "", eager = false, children }: { source: string | null; alt: string; className?: string; eager?: boolean; children?: ReactNode }) {
   return <div className={`store-picture ${className}`}>
     {source ? <Image src={source} alt={alt} fill unoptimized loading={eager ? "eager" : "lazy"} /> : <ImageOff size={26} aria-hidden="true" />}
+    {children}
   </div>;
 }
 
@@ -77,6 +79,7 @@ export function Header({ base, product, editorial = false, cart = false }: { bas
     {base.demo && <DemoCartLink theme={base.demo.theme} locale={base.locale} />}
     {base.contact && <CartLink storeId={base.contact.storeId} slug={base.store.slug} locale={base.locale} accepting={base.contact.accepting || cart} />}</div>;
   return <>
+    <AnnouncementBar base={base} />
     <a className="store-skip" href="#theme-main">{themeCopy[base.locale].skip}</a>
     {editorial ? <header className="store-masthead">
       <div className="store-masthead-main store-width"><span className="store-market">{new Intl.DisplayNames(base.locale, { type: "region" }).of(base.store.country)}</span><Brand base={base} />{tools}</div>
@@ -89,7 +92,9 @@ export function Header({ base, product, editorial = false, cart = false }: { bas
 
 export function Footer({ base, editorial = false }: { base: Base; editorial?: boolean }) {
   const { store, locale } = base;
-  return <footer className={editorial ? "store-footer store-footer-editorial" : "store-footer"}>
+  return <>
+    <TrustStrip base={base} />
+    <footer className={editorial ? "store-footer store-footer-editorial" : "store-footer"}>
     <div className="store-width store-footer-inner">
       <Brand base={base} />
       <span className="store-market">{new Intl.DisplayNames(locale, { type: "region" }).of(store.country)} <span aria-hidden="true">·</span> <bdi>{store.currency}</bdi></span>
@@ -101,7 +106,36 @@ export function Footer({ base, editorial = false }: { base: Base; editorial?: bo
       </div>}
       <small>{themeCopy[locale].builtWith}</small>
     </div>
-  </footer>;
+  </footer>
+    <ContactButton base={base} />
+  </>;
+}
+
+/** True when visitors can really order: the live store accepts orders through a published channel, or this is the demo store. */
+const orderChannels = (base: Base) => Boolean(base.demo) || Boolean(base.contact?.accepting && base.contact.links && (base.contact.links.whatsapp || base.contact.links.instagram));
+
+/** A single quiet line above the header: how orders reach the store. Only shown when the store really accepts orders. */
+function AnnouncementBar({ base }: { base: Base }) {
+  if (!orderChannels(base)) return null;
+  const chrome = storeChromeCopy[base.locale];
+  return <p className="store-announcement"><MessageCircle size={15} aria-hidden="true" /><span>{chrome.announcement}</span><span className="store-announcement-note">{chrome.announcementNote}</span></p>;
+}
+
+/** Facts about how ordering works on every WAJHATI store; nothing here is a claim about this particular merchant. */
+function TrustStrip({ base }: { base: Base }) {
+  if (!orderChannels(base)) return null;
+  const chrome = storeChromeCopy[base.locale];
+  const icons = [MessageCircle, Hash, Calculator, Languages];
+  return <section className="store-trust" aria-label={chrome.trustLabel}>
+    <ul className="store-width">{chrome.trust.map((item, index) => { const Icon = icons[index]; return <li key={item}><Icon size={18} aria-hidden="true" /><span>{item}</span></li>; })}</ul>
+  </section>;
+}
+
+/** Floating contact button, shown only when the merchant published a WhatsApp link. */
+function ContactButton({ base }: { base: Base }) {
+  const url = base.contact?.links?.whatsapp;
+  if (!url || base.preview) return null;
+  return <a className="store-contact-fab" href={url} target="_blank" rel="noopener noreferrer" aria-label={storeChromeCopy[base.locale].whatsapp}><MessageCircle size={26} aria-hidden="true" /></a>;
 }
 
 export function StorePrice({ base, product }: { base: Base; product: Pick<ThemeProduct, "priceMinor" | "compareAtMinor"> }) {
@@ -116,15 +150,20 @@ export function ProductTile({ base, product }: { base: Base; product: ThemeProdu
   const { locale, store, preview } = base;
   const name = localizedValue(locale, product.nameAr, product.nameEn);
   const source = preview || base.demo ? product.imageSrc ?? null : product.imageId ? publicImagePath(store.slug, product.imageId) : null;
+  const chrome = storeChromeCopy[locale];
+  const saving = product.compareAtMinor !== null && product.compareAtMinor > product.priceMinor ? Math.round((1 - product.priceMinor / product.compareAtMinor) * 100) : 0;
   const content = <>
-    <Picture source={source} alt="" />
+    <Picture source={source} alt="">
+      {saving > 0 && product.available && <span className="store-badge store-badge-sale">{chrome.save} <bdi>{new Intl.NumberFormat(locale, { style: "percent" }).format(saving / 100)}</bdi></span>}
+      {!preview && <span className="store-tile-action" aria-hidden="true"><Eye size={15} />{chrome.view}</span>}
+    </Picture>
     <div className="store-product-caption">
       <h3><bdi>{name}</bdi></h3>
       <StorePrice base={base} product={product} />
       {!product.available && <span className="store-stock">{catalogCopy[locale].unavailableItem}</span>}
     </div>
   </>;
-  return <li className="store-tile">{preview ? <article>{content}</article> : <Link href={`${storePath(base)}/p/${product.slug}`}>{content}</Link>}</li>;
+  return <li className="store-tile" data-available={product.available}>{preview ? <article>{content}</article> : <Link href={`${storePath(base)}/p/${product.slug}`}>{content}</Link>}</li>;
 }
 
 export function CategoryShowcase({ base, items }: { base: Base; items: ThemeCategory[] }) {

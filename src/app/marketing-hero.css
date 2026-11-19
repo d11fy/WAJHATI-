@@ -1,0 +1,161 @@
+/*
+ * Home page hero ("Preview Switch Hero" pattern from 21st.dev, rebuilt in plain CSS with logical properties for RTL and LTR),
+ * plus the light header the home page uses with it. The remaining marketing sections keep their own styles.
+ */
+@layer components {
+  /* ---------- Light header on the home page ---------- */
+  .wajhati-marketing-home .wajhati-market-header { background: #fff; color: var(--wajhati-navy); border-block-end: 1px solid #e4eaee; }
+  .wajhati-marketing-home .wajhati-market-links a:hover, .wajhati-marketing-home .wajhati-market-links [aria-current="page"] { color: var(--wajhati-teal); }
+  .wajhati-marketing-home .wajhati-market-header a.wajhati-cta { background: var(--wajhati-navy); color: #fff; border-radius: 0.8rem; }
+  .wajhati-marketing-home .wajhati-market-header a.wajhati-cta:hover { background: #17344f; }
+  .wajhati-marketing-home .wajhati-market-header :focus-visible { outline-color: var(--wajhati-teal); }
+  .wajhati-marketing-home .wajhati-market-header { position: sticky; inset-block-start: 0; z-index: 30; }
+
+  /* ---------- Hero ---------- */
+  .mh { position: relative; isolation: isolate; overflow: hidden; background: #fff; color: var(--wajhati-navy); }
+  .mh-glow {
+    position: absolute; z-index: -1; inset-block-start: -14rem; inset-inline-start: 50%; inline-size: 70rem; block-size: 34rem; translate: -50% 0; border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(34 199 242 / 16%), rgb(15 118 110 / 8%) 55%, transparent);
+  }
+  .mh-split { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); align-items: center; gap: clamp(2rem, 5vw, 5rem); padding-block: clamp(2.25rem, 5vw, 4.5rem) clamp(2.5rem, 5vw, 4rem); }
+  .mh-copy { display: flex; flex-direction: column; align-items: flex-start; min-inline-size: 0; }
+  .mh-badge { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.3rem 0.85rem 0.3rem 0.4rem; border-radius: 0.6rem; background: #f1f5f7; color: #4a5f6c; font-size: 0.86rem; font-weight: 600; }
+  .mh-badge:dir(rtl) { padding: 0.3rem 0.4rem 0.3rem 0.85rem; }
+  .mh-badge span { padding: 0.1rem 0.55rem; border-radius: 0.4rem; background: #fff; color: var(--wajhati-teal); font-size: 0.74rem; font-weight: 800; box-shadow: 0 1px 2px rgb(11 31 51 / 10%); }
+  .mh h1 { margin-block: 1.1rem 1rem; max-inline-size: 18ch; font-size: clamp(2.3rem, 4.1vw, 3.7rem); font-weight: 800; line-height: 1.18; letter-spacing: -0.015em; text-wrap: balance; }
+  .mh h1:lang(ar) { letter-spacing: 0; line-height: 1.3; }
+  .mh h1 em { display: block; font-style: normal; color: var(--wajhati-teal); }
+  .mh-intro { max-inline-size: 44ch; color: #4a5f6c; font-size: clamp(1rem, 1.35vw, 1.15rem); line-height: 1.9; text-wrap: pretty; }
+  .mh-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-start: 1.9rem; }
+  .mh-primary, .mh-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-block-size: 3.1rem; padding-inline: 1.5rem; border-radius: 0.85rem; font-weight: 700; transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+  .mh-primary { background: var(--wajhati-navy); color: #fff; box-shadow: 0 10px 24px rgb(11 31 51 / 22%); }
+  .mh-primary:hover { background: #17344f; transform: translateY(-1px); }
+  .mh-arrow:dir(ltr) { rotate: 90deg; }
+  .mh-secondary { background: #f1f5f7; color: #3d5463; }
+  .mh-secondary:hover { background: #fff; box-shadow: 0 0 0 1px #d5dfe4, 0 6px 16px rgb(11 31 51 / 8%); color: var(--wajhati-navy); }
+  .mh-note { margin-block-start: 1rem; color: #5b7080; font-size: 0.86rem; }
+
+  /* ---------- Preview switcher ---------- */
+  .mh-demo { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "frame rail" "cap cap"; align-items: start; gap: 0.9rem 1.25rem; min-inline-size: 0; }
+  .mh-frame { grid-area: frame; min-inline-size: 0; overflow: hidden; border: 1px solid #dde5ea; border-radius: 1.1rem; background: #fff; box-shadow: 0 34px 70px rgb(11 31 51 / 13%), 0 2px 6px rgb(11 31 51 / 6%); }
+  .mh-chrome { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.8rem; background: #f4f7f9; border-block-end: 1px solid #e6ecf0; }
+  .mh-dots { display: inline-flex; gap: 0.3rem; }
+  .mh-dots i { inline-size: 0.6rem; block-size: 0.6rem; border-radius: 50%; background: #cdd8de; }
+  .mh-url { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.22rem 0.8rem; border-radius: 0.5rem; background: #fff; color: #5b7080; font: 500 0.74rem Poppins, sans-serif; text-align: center; }
+  .mh-url b { color: var(--wajhati-navy); font-weight: 600; }
+  .mh-open { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.65rem; border-radius: 0.5rem; background: #fff; color: var(--wajhati-teal); font-size: 0.78rem; font-weight: 700; box-shadow: 0 0 0 1px #dde5ea; }
+  .mh-open:hover { background: var(--wajhati-teal); color: #fff; }
+  .mh-screen { position: relative; aspect-ratio: 5 / 4; background: #eef2f4; -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
+  .mh-shot { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity 500ms ease; }
+  .mh-shot.is-active { opacity: 1; }
+  .mh-caption { grid-area: cap; color: #647a88; font-size: 0.78rem; }
+  .mh-rail { grid-area: rail; display: flex; flex-direction: column; gap: 0.4rem; }
+  .mh-tab { padding: 0.65rem 1rem; border: 0; border-radius: 0.75rem; background: transparent; color: #5b7080; font: inherit; font-size: 0.9rem; font-weight: 600; text-align: start; white-space: nowrap; transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease; }
+  .mh-tab:hover { background: #f1f5f7; color: var(--wajhati-navy); }
+  .mh-tab[aria-selected="true"] { background: #f1f5f7; color: var(--wajhati-navy); font-weight: 800; box-shadow: 0 1px 2px rgb(11 31 51 / 10%), 0 0 0 1px #dde5ea; }
+  .mh-tab:focus-visible, .mh-primary:focus-visible, .mh-secondary:focus-visible, .mh-open:focus-visible { outline: 2px solid var(--wajhati-teal); outline-offset: 2px; }
+
+  /* ---------- Facts strip ---------- */
+  .mh-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid #e4eaee; padding: 0; }
+  .mh-facts li { display: flex; align-items: center; justify-content: center; gap: 0.7rem; padding: 1.4rem 1rem; font-weight: 700; color: #35505f; }
+  .mh-facts li + li { border-inline-start: 1px solid #e4eaee; }
+  .mh-facts svg { flex: none; color: var(--wajhati-teal); }
+  .mh-facts { inline-size: 100%; max-inline-size: none; margin-inline: 0; }
+
+  @media (prefers-reduced-motion: reduce) { .mh-shot { transition: none; } .mh-primary:hover { transform: none; } }
+
+  @media (max-width: 63.99rem) {
+    .mh-split { grid-template-columns: minmax(0, 1fr); }
+    .mh h1 { max-inline-size: 18ch; }
+  }
+  @media (max-width: 47.99rem) {
+    .mh-demo { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rail" "frame" "cap"; }
+    .mh-rail { flex-direction: row; overflow-x: auto; padding-block-end: 0.2rem; scrollbar-width: none; }
+    .mh-rail::-webkit-scrollbar { display: none; }
+    .mh-tab { padding: 0.55rem 0.9rem; border-radius: 999px; background: #f1f5f7; }
+    .mh-tab[aria-selected="true"] { background: var(--wajhati-navy); color: #fff; box-shadow: none; }
+    .mh-actions { inline-size: 100%; }
+    .mh-primary, .mh-secondary { flex: 1 1 100%; }
+    .mh-facts { grid-template-columns: minmax(0, 1fr); }
+    .mh-facts li { justify-content: flex-start; padding-block: 1rem; padding-inline: 1.25rem; }
+    .mh-facts li + li { border-inline-start: 0; border-block-start: 1px solid #e4eaee; }
+  }
+}
+
+/* ---------- Rest of the marketing pages: light, calm, one language with the hero ---------- */
+@layer components {
+  .wajhati-marketing { background: #fff; color: var(--wajhati-navy); }
+  /* Light header and plain headings hero on every marketing page */
+  .wajhati-marketing .wajhati-market-header { background: #fff; color: var(--wajhati-navy); border-block-end: 1px solid #e4eaee; position: sticky; inset-block-start: 0; z-index: 30; }
+  .wajhati-marketing .wajhati-market-links a:hover, .wajhati-marketing .wajhati-market-links [aria-current="page"] { color: var(--wajhati-teal); }
+  .wajhati-marketing .wajhati-market-header a.wajhati-cta { background: var(--wajhati-navy); color: #fff; border-radius: 0.8rem; }
+  .wajhati-marketing .wajhati-market-header a.wajhati-cta:hover { background: #17344f; }
+  .wajhati-marketing .wajhati-market-header :focus-visible { outline-color: var(--wajhati-teal); }
+  .wajhati-marketing .wajhati-market-hero:not(.wajhati-home-hero) { background: #fff; color: var(--wajhati-navy); border-block-end: 1px solid #e4eaee; }
+  .wajhati-marketing .wajhati-market-hero:not(.wajhati-home-hero) .wajhati-hero-copy { color: #4a5f6c; }
+  .wajhati-marketing .wajhati-market-hero:not(.wajhati-home-hero) h1 { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; line-height: 1.25; }
+  .wajhati-marketing .wajhati-market-hero:not(.wajhati-home-hero) .wajhati-cta { background: var(--wajhati-navy); color: #fff; border-radius: 0.85rem; }
+  .wajhati-marketing .wajhati-market-trial { color: #5b7080; }
+
+  /* Section rhythm: white and a very light wash alternate */
+  .wajhati-marketing .theme-showcase { background: #f6f9fa; }
+  .wajhati-marketing .wajhati-comparison { background: #f6f9fa; border-block-start: 1px solid #e4eaee; }
+  .wajhati-marketing .wajhati-market-section h2, .wajhati-marketing .wajhati-market-closing h2 { font-weight: 800; letter-spacing: -0.01em; }
+  .wajhati-marketing .wajhati-market-section h2:lang(ar), .wajhati-marketing .wajhati-market-closing h2:lang(ar) { letter-spacing: 0; }
+  .wajhati-marketing .premium-text-link { color: var(--wajhati-teal); font-weight: 700; }
+
+  /* Theme cards: quieter frame, same hover lift */
+  .wajhati-marketing .theme-showcase-image { border: 1px solid #dde5ea; border-radius: 1rem; background: #eef2f4; }
+  .wajhati-marketing .theme-showcase-card:hover { box-shadow: 0 24px 50px rgb(11 31 51 / 12%); }
+
+  /* Feature points: one divided row instead of three separate cards */
+  .wajhati-marketing .wajhati-feature-band { gap: 0; border: 1px solid #e0e8ec; border-radius: 1.1rem; background: #fff; overflow: hidden; }
+  .wajhati-marketing .wajhati-feature-band article { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 1.6rem; transition: background-color 200ms ease; transform: none; }
+  .wajhati-marketing .wajhati-feature-band article::after { content: none; }
+  .wajhati-marketing .wajhati-feature-band article:hover { background: #f6f9fa; transform: none; box-shadow: none; }
+  .wajhati-marketing .wajhati-feature-band article + article { border-inline-start: 1px solid #e0e8ec; }
+
+  /* Comparison: plain white panels, the "after" panel carries a teal outline */
+  .wajhati-marketing .wajhati-comparison-card { border-radius: 1.1rem; border: 1px solid #dde5ea; background: #fff; box-shadow: none; }
+  .wajhati-marketing .wajhati-comparison-after { border-color: var(--wajhati-teal); box-shadow: 0 0 0 4px rgb(15 118 110 / 8%); }
+  .wajhati-marketing .wajhati-comparison-after::before { content: none; }
+  .wajhati-marketing .wajhati-comparison-before { background: #fbfcfd; border-style: dashed; }
+
+  /* How it works: light, connected steps */
+  .wajhati-marketing .wajhati-how { background: #fff; color: var(--wajhati-navy); }
+  .wajhati-marketing .wajhati-how .wajhati-market-section > p, .wajhati-marketing .wajhati-how li p { color: #4a5f6c; }
+  .wajhati-marketing .wajhati-how li { border: 1px solid #e0e8ec; border-radius: 1rem; background: #fff; padding: 1.4rem; }
+  .wajhati-marketing .wajhati-how li:hover { background: #f6f9fa; }
+  .wajhati-marketing .wajhati-how li span { display: grid; place-items: center; inline-size: 2.4rem; block-size: 2.4rem; padding: 0; border-radius: 50%; background: var(--wajhati-navy); color: #fff; text-shadow: none; font-weight: 800; }
+  .wajhati-marketing .wajhati-how ol::before { content: none; }
+  .wajhati-marketing .wajhati-how ol { gap: 1rem; }
+
+  /* Pricing and FAQ: sharper corners, neutral borders */
+  .wajhati-marketing .wajhati-plan-cards .premium-price-layout { border-radius: 1.25rem; border-color: #dde5ea; background: #fff; }
+  .wajhati-marketing .wajhati-plan-cards .premium-price-layout.is-featured { border-color: var(--wajhati-teal); background: #fff; box-shadow: 0 0 0 5px rgb(15 118 110 / 8%), 0 26px 50px rgb(15 118 110 / 12%); }
+  .wajhati-marketing .wajhati-payments, .wajhati-marketing .premium-setup { background: #f6f9fa; border: 1px solid #e0e8ec; }
+  .wajhati-marketing .wajhati-questions details { border: 1px solid #e0e8ec; border-radius: 1rem; background: #fff; }
+  .wajhati-marketing .wajhati-questions details[open] { background: #f6f9fa; border-color: #cfdce2; box-shadow: none; }
+  .wajhati-marketing .wajhati-questions summary svg { border-radius: 50%; background: #eaf1f4; color: var(--wajhati-navy); }
+  .wajhati-marketing .wajhati-questions details[open] summary svg { background: var(--wajhati-navy); color: #fff; }
+
+  /* Closing: a rounded dark card, not a full-width band */
+  .wajhati-marketing .wajhati-market-closing { background: #fff; padding-block: clamp(2.5rem, 6vw, 5rem); }
+  .wajhati-marketing .wajhati-market-closing::before, .wajhati-marketing .wajhati-market-closing::after { content: none; }
+  .wajhati-marketing .wajhati-market-closing > .wajhati-market-width {
+    position: relative; overflow: hidden; isolation: isolate; padding: clamp(2.25rem, 6vw, 4.5rem) clamp(1.25rem, 4vw, 3rem); border-radius: 1.75rem; color: #fff; text-align: center;
+    background: radial-gradient(ellipse 60% 120% at 50% 0, rgb(34 199 242 / 24%), transparent 70%), var(--wajhati-navy);
+  }
+  .wajhati-marketing .wajhati-market-closing h2 { color: #fff; font-size: clamp(2rem, 4.2vw, 3.2rem); }
+  .wajhati-marketing .wajhati-market-closing .wajhati-cta { background: #fff; color: var(--wajhati-navy); border-radius: 0.85rem; }
+  .wajhati-marketing .wajhati-market-closing .wajhati-cta:hover { background: #e8f2f5; }
+
+  /* Footer: light, like the header */
+  .wajhati-marketing .wajhati-market-footer { background: #f6f9fa; color: var(--wajhati-navy); border-block-start: 1px solid #e4eaee; }
+  .wajhati-marketing .wajhati-market-footer p, .wajhati-marketing .wajhati-market-footer nav { color: #4a5f6c; }
+  .wajhati-marketing .wajhati-market-footer a:hover { color: var(--wajhati-teal); }
+
+  @media (max-width: 47.99rem) {
+    .wajhati-marketing .wajhati-feature-band article + article { border-inline-start: 0; border-block-start: 1px solid #e0e8ec; }
+  }
+}
