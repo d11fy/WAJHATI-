@@ -19,6 +19,6 @@ export function ChannelMarquee({ locale }: { locale: Locale }) {
     {items.map(({ icon: Icon, ar: labelAr, en }) => <li key={en}><Icon size={18} aria-hidden="true" /><span>{ar ? labelAr : en}</span></li>)}
   </ul>;
   return <section className="cm" aria-label={ar ? "وسائل الدفع وقنوات الطلب المدعومة" : "Supported payment methods and order channels"}>
-    <div className="cm-track">{row(false)}{row(true)}</div>
+    <div className="cm-track">{[false, true].map((hidden) => <div className="cm-group" key={String(hidden)} aria-hidden={hidden || undefined}>{row(hidden)}{row(true)}</div>)}</div>
   </section>;
 }

@@ -37,7 +37,8 @@
     .cm:dir(rtl) .cm-track { --cm-dir: -1; }
     .cm:hover .cm-track { animation-play-state: paused; }
   }
-  @media (prefers-reduced-motion: reduce) { .cm { overflow-x: auto; } .cm-row[aria-hidden="true"] { display: none; } }
+  .cm-group { display: flex; flex: none; }
+  @media (prefers-reduced-motion: reduce) { .cm { -webkit-mask-image: none; mask-image: none; } .cm-track { inline-size: auto; justify-content: center; } .cm-group[aria-hidden="true"], .cm-group > .cm-row[aria-hidden="true"] { display: none; } .cm-row { flex-wrap: wrap; justify-content: center; } }
 
   /* ---------- Bento features ---------- */
   .bento-head { display: grid; justify-items: start; gap: 0.6rem; margin-block-end: 1.75rem; }
