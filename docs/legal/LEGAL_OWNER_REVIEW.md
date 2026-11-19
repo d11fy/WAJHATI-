@@ -21,7 +21,7 @@ This is engineering drafting from what the platform actually does, completed wit
 | AGE-LIMIT | Privacy 12, Terms 2 | 18 years | Owner |
 | RETENTION-ACCOUNT | Privacy 10, 11 | Manual deletion within 30 days of a verified request | Owner |
 | RETENTION-AUDIT | Privacy 10 | Billing and audit records kept 7 years, then deleted or anonymised in periodic maintenance. **Nothing deletes them automatically today**, so this is a manual duty | Owner (7 years confirmed) |
-| RETENTION-BACKUP | Privacy 10 | Off-server backups kept 35 days. **Needs a delete-after-35-days lifecycle rule on the backup bucket, which has not been saved yet (it permanently deletes backups, so it awaits the owner's approval).** Until it exists the published figure is not enforced | Owner |
+| RETENTION-BACKUP | Privacy 10 | Off-server backups kept 35 days, enforced by the lifecycle rule `delete-backups-after-35-days` on the backup bucket (created 2026-11-19 with the owner's explicit approval) | Owner |
 | RESPONSE-TIME | Privacy 11 | Within 14 days | Owner |
 | PAYMENT-METHODS | Terms 10 | Bank transfer, Palestinian e-wallets, USDT, Vodafone Cash | Owner |
 | TAX | Terms 8 | No tax is added to subscription prices | Owner |
