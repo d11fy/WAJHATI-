@@ -272,12 +272,24 @@ test("billing workflow with real PostgreSQL, restricted runtime and maintenance 
     assert.equal(await cancelAtEnd(merchant.id, paidSlug, false), "ok");
     await owner.query("update public.billing_periods set ends_at=now()-interval '1 day' where request_id=$1", [renewalId]);
     assert.equal((await merchantBilling(merchant.id, paidSlug, 1))?.state.status, "grace_period");
+    // The renewal grace period keeps the public storefront online.
+    assert.ok(await getPublicStore(paidSlug));
     await owner.query("update public.billing_subscriptions set cancel_at=(select ends_at from public.billing_periods where request_id=$2) where store_id=$1", [paidId, renewalId]);
     assert.equal((await merchantBilling(merchant.id, paidSlug, 1))?.state.status, "canceled");
+    assert.equal(await getPublicStore(paidSlug), null, "a canceled store whose period ended is not public");
     await owner.query("update public.billing_subscriptions set cancel_at=null where store_id=$1", [paidId]);
     await owner.query("update public.billing_periods set grace_until=now()-interval '1 second' where request_id=$1", [renewalId]);
     assert.equal((await merchantBilling(merchant.id, paidSlug, 1))?.state.status, "suspended");
-    assert.ok(await getPublicStore(paidSlug));
+    // Once the paid period and the grace period have ended the storefront disappears everywhere it is read, and its data stays.
+    assert.equal(await getPublicStore(paidSlug), null, "an expired store is not public");
+    assert.equal((await runtime.query("select count(*)::int n from public.catalog_public_products($1,null,null,'newest',false,0,25)", [paidSlug])).rows[0].n, 0);
+    const { rows: [kept] } = await owner.query<{ n: number; slug: string | null }>(
+      "select count(*)::int n, (array_agg(slug) filter (where state='published'))[1] as slug from public.catalog_products where store_id=$1 and state<>'archived'", [paidId]);
+    assert.ok(kept.n > 0, "the merchant's products are kept");
+    if (kept.slug) assert.equal((await runtime.query("select count(*)::int n from public.catalog_public_product($1,$2)", [paidSlug, kept.slug])).rows[0].n, 0);
+    await owner.query("update public.billing_periods set grace_until=now()+interval '12 days' where request_id=$1", [renewalId]);
+    assert.ok(await getPublicStore(paidSlug), "the storefront returns when the subscription is renewed");
+    await owner.query("update public.billing_periods set grace_until=now()-interval '1 second' where request_id=$1", [renewalId]);
     assert.deepEqual(await saveProduct(merchant.id, paidSlug, null, products("cannot-publish", "published")), { error: "billingPublication" });
   });
 

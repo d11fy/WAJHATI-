@@ -1,44 +1,44 @@
 # Legal pages — owner and counsel review
 
-Status: **DRAFT, not approved.** Version `draft-1`, last updated 2026-11-18.
+Status: **content complete; approval is the owner's flag.** Version `1.0`, last updated 2026-11-19.
 Pages: `/ar/privacy`, `/en/privacy`, `/ar/terms`, `/en/terms`. Source of the text: `src/lib/legal.ts`.
 
-This is engineering drafting from what the platform actually does. It is not legal advice and has not been reviewed by a lawyer. I did not copy third-party legal text, did not claim GDPR or any other regime, and did not add badges or certifications.
+This is engineering drafting from what the platform actually does, completed with facts the owner supplied. It is not legal advice and has not been reviewed by a lawyer. It does not claim GDPR or any other regime and carries no badges or certifications.
 
 ## How the safeguards work
 
-- **Approval takes two keys.** `LEGAL_APPROVED=true` **and** no owner-review placeholder left in any of the four texts. If the flag is set while placeholders remain, the pages stay marked as drafts, stay `noindex` and stay out of the sitemap, so setting the flag by mistake cannot present draft text as approved (`legalApproved()` in `src/lib/legal.ts`, tested).
-- No checked-in configuration sets the flag to `true` (a test scans every deployable config). The production template and the staging compose file both say `false`.
-- While `LEGAL_APPROVED` is not exactly `true`, every legal page shows a visible banner ("Draft pending owner approval and legal review"), highlights each open item inline, sets `noindex`, and stays out of the sitemap.
-- In `DAR_ENV=production`, `scripts/ops/validate-env.mjs` fails with `LEGAL_APPROVED` and the Dokploy bootstrap refuses to start the app. Staging and development are not blocked. This makes it impossible to ship the draft to production by accident.
-- To approve: resolve every item below in `src/lib/legal.ts` (replace the `{{ID}}` token with the confirmed text, or delete the sentence), bump `legalVersion` and `legalUpdated`, have counsel sign off, then set `LEGAL_APPROVED=true` in the production secret store.
+- **Approval takes two keys.** `LEGAL_APPROVED=true` **and** no owner-review placeholder left in any of the four texts (`legalApproved()`, tested). With a placeholder open the pages stay marked as drafts, stay `noindex` and stay out of the sitemap even if the flag is set. No placeholder is open now.
+- No checked-in configuration sets the flag to `true` (a test scans every deployable config). Production reads it from the secret store.
+- Without the flag every legal page shows a draft banner, is `noindex` and is out of the sitemap. In `DAR_ENV=production` the application refuses to start unless the flag is `true`.
+- To add a future review item: add it to `ownerGaps` and use `{{ID}}` in the text. It then renders visibly and holds the pages as drafts until it is replaced with confirmed text.
 
-## Open items the owner must supply
+## Facts the owner supplied (2026-11-19)
 
-Each ID is rendered on the pages as a highlighted placeholder. "Today's code" says what the platform currently does so the answer can be consistent with it.
-
-| ID | Where | Question | Today's code |
+| ID | Where | Text now published | Basis |
 | --- | --- | --- | --- |
-| `OP-IDENTITY` | Privacy 1; Terms 1 | Registered legal name of the operator | Unknown. Not in the repository. |
-| `OP-ADDRESS` | Privacy 1; Terms 1 | Registered address and registration number | Unknown. |
-| `GOV-LAW` | Terms 17 | Governing law and competent courts | None chosen. I did not guess a jurisdiction. |
-| `REFUND` | Terms 11 | Refund and paid-period cancellation policy | **No refund function exists.** Renewal is manual, so a merchant can simply not renew. Whether money is returned for an activated period is a business decision. |
-| `LIABILITY` | Terms 16 | Warranty disclaimer and liability limits | Needs counsel; wording and caps are jurisdiction-specific. |
-| `AGE-LIMIT` | Privacy 12; Terms 2 | Minimum age and eligibility | Not enforced in code (the sign-up form asks only name, email, password). |
-| `ROLES` | Privacy 2 | How WAJHATI and merchants are characterised under data-protection law | Not decided. The page describes responsibilities factually and does not use legal labels. |
-| `HOSTING-REGION` | Privacy 8 | Hosting provider and data location | **Not decided.** `wajhati.store` is currently a Hostinger parked domain and no application host exists yet. |
-| `STORAGE-PROVIDER` | Privacy 8 | Object storage and backup storage providers | Code speaks to any S3-compatible store; none chosen. |
-| `SMTP-PROVIDER` | Privacy 8 | Outbound email relay provider | Mailbox DNS is Hostinger Email. The relay actually used is configured in the platform settings and is not yet set. |
-| `RETENTION-ACCOUNT` | Privacy 10; Privacy 11 | How and how fast an account or store is deleted on request | **No self-service deletion or export exists.** `store_memberships.user_id` is `ON DELETE RESTRICT`, so deleting a user needs a deliberate manual procedure. Decide the procedure, then write it. |
-| `RETENTION-AUDIT` | Privacy 10 | Retention period for billing and audit records | Nothing deletes `platform_events`, `billing_audit` or manual subscription terms (activated terms are immutable). Tax and accounting rules in your jurisdiction may require a minimum. |
-| `RETENTION-BACKUP` | Privacy 10 | Backup retention | Local spool 7 days. Off-server lifecycle (recommended 35 days in `docs/phase6b-operations.md`) is a bucket setting that does not exist yet. |
-| `RESPONSE-TIME` | Privacy 11 | Response time for privacy requests | None. |
-| `EXPIRY-VISIBILITY` | Terms 12 | What happens to a store's public page when the trial or subscription ends | Entitlements change (for example `publish`). Whether the published storefront stays visible after expiry should be confirmed against the `billing_state` logic before it is promised in writing. |
-| `PAYMENT-METHODS` | Terms 10 | Accepted payment methods and currencies for subscriptions | Arranged over WhatsApp; the platform has no gateway. |
-| `SUPPORT-HOURS` | Terms 13 | Support hours and response targets | None. |
-| `UPTIME` | Terms 13 | Any availability commitment | None; a single-VPS design (`docs/phase6b-operations.md`) argues against promising one. |
-| `TAX` | Terms 8 | VAT and tax treatment of subscription prices | Unknown. |
-| `ACCESS-LOGS` | Privacy 3 | Access logs kept by the proxy or hosting stack and for how long | Depends on the chosen hosting. The app logs structured event codes only. |
+| OP-IDENTITY, OP-ADDRESS | Privacy 1, Terms 1 | Operated by WAJHATI (واجهتي), Gaza, Palestine | Owner. No registration number was given, so none is stated |
+| REFUND | Terms 11 | No refund after activation unless a problem occurred that could not be resolved; contact support to request one | Owner |
+| AGE-LIMIT | Privacy 12, Terms 2 | 18 years | Owner |
+| RETENTION-ACCOUNT | Privacy 10, 11 | Manual deletion within 30 days of a verified request | Owner |
+| RETENTION-AUDIT | Privacy 10 | Billing and audit records kept 7 years, then deleted or anonymised in periodic maintenance. **Nothing deletes them automatically today**, so this is a manual duty | Owner (7 years confirmed) |
+| RETENTION-BACKUP | Privacy 10 | Off-server backups kept 35 days. **Needs a delete-after-35-days lifecycle rule on the backup bucket, which has not been saved yet (it permanently deletes backups, so it awaits the owner's approval).** Until it exists the published figure is not enforced | Owner |
+| RESPONSE-TIME | Privacy 11 | Within 14 days | Owner |
+| PAYMENT-METHODS | Terms 10 | Bank transfer, Palestinian e-wallets, USDT, Vodafone Cash | Owner |
+| TAX | Terms 8 | No tax is added to subscription prices | Owner |
+| SUPPORT-HOURS | Terms 13 | 9:00 AM until 12:00 midnight, Palestine time | Owner (midnight confirmed) |
+| UPTIME | Terms 13 | No availability commitment | Owner |
+| EXPIRY-VISIBILITY | Terms 12 | The store page disappears from public view and stops taking orders when the period and any grace period end; data is kept; it returns on renewal | Owner; **implemented in code by migration 0028** |
+| GOV-LAW | Terms 17 | Laws of the State of Palestine; unresolved disputes to the competent courts in Gaza | Owner chose this default |
+| STORAGE-PROVIDER, SMTP-PROVIDER | Privacy 8 | Cloudflare (R2), Hostinger | Facts of the deployment |
+
+### Wording drafted without an owner answer (counsel review recommended)
+
+| ID | Where | What was written |
+| --- | --- | --- |
+| ROLES | Privacy 2 | Plain description: store data is processed on the merchant's behalf to run their store; merchant account data is processed to operate, bill and secure the platform. No legal labels |
+| LIABILITY | Terms 16 | Standard as-is wording: no express or implied warranties; to the extent the law permits, no liability for indirect or consequential losses, lost profits or lost data. **No monetary cap was invented** |
+| HOSTING-REGION | Privacy 8 | A private virtual server managed by WAJHATI at a hosting provider; the processing location is available on request. The owner chose not to name the provider |
+| ACCESS-LOGS | Privacy 3 | The hosting layer may keep short-lived technical access logs for security and operations |
 
 ## Facts the draft states, with where they come from
 
@@ -62,7 +62,7 @@ Confirm each still holds before approval. If the code changes, the text must cha
 
 ## Things the text avoids promising
 
-- Immediate or complete deletion, data residency in any country, a response deadline, an uptime figure, a refund guarantee or a no-refund rule.
+- Immediate or complete deletion, data residency in any country, an uptime figure or a refund guarantee.
 - GDPR, UAE, KSA, Egyptian or any other legal compliance.
 - That WAJHATI collects payments from store customers (it does not).
 
@@ -77,22 +77,5 @@ Confirm each still holds before approval. If the code changes, the text must cha
 
 | Role | Name | Date | Decision |
 | --- | --- | --- | --- |
-| Owner | | | |
-| Legal counsel | | | |
-
-## Placeholder audit (second pass, 2026-11-18)
-
-What a visitor can see, counted from the live text:
-
-| Page | Visible placeholders | Distinct items |
-| --- | --- | --- |
-| `/ar/privacy` | 12 | 12 |
-| `/en/privacy` | 12 | 12 |
-| `/ar/terms` | 11 | 11 |
-| `/en/terms` | 11 | 11 |
-| All four pages | | **20 of 20** |
-
-- Every placeholder renders inside a highlighted `OWNER REVIEW` or `LEGAL REVIEW` marker (a test and a browser check fail if a raw `{{TOKEN}}` ever shows).
-- A search of all tracked source for stray placeholder text (`lorem`, `TBD`, `TODO`, `coming soon`, `REPLACE_ME`, template braces) found **none outside `src/lib/legal.ts`**. The only other placeholders in the product are input hint attributes (for example the e-mail field) and are not content.
-- Nothing was invented to fill a gap. The facts the pages do state come from the code or from the owner (domain, support e-mail, WhatsApp number), listed in the table above with their sources.
-- The Arabic and English texts carry identical sets of placeholders (a test enforces it), so a gap cannot be closed in one language and forgotten in the other.
+| Owner | | 2026-11-19 | Reviewed the pages and chose to publish |
+| Legal counsel | | | Not reviewed. Recommended for the four wording items above |

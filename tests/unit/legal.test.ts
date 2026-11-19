@@ -41,7 +41,26 @@ test("business rules in the Terms match the platform: plans, trial, manual activ
   const ar = text(legalDocs.terms.ar);
   for (const phrase of ["Starter", "Pro", "Monthly", "Yearly", "72-hour", "1, 3, 6 or 12 months", "one store", "no automatic renewal", "no payment gateway", "not proof of payment"]) assert.ok(en.includes(phrase), `English terms mention ${phrase}`);
   for (const phrase of ["Starter", "Pro", "شهري", "سنوي", "72 ساعة", "1 أو 3 أو 6 أو 12", "متجرًا واحدًا", "لا يوجد تجديد تلقائي", "ليس دليل دفع"]) assert.ok(ar.includes(phrase), `Arabic terms mention ${phrase}`);
-  assert.doesNotMatch(en, /money-back|guarantee[d]? refund|no refunds?/i, "no invented refund rule");
+  // The refund rule is the owner's: nothing is refunded after activation unless a problem occurred that could not be resolved.
+  assert.match(en, /not refunded once it has been activated, unless a problem occurred/);
+  assert.match(ar, /لا يُردّ المبلغ المدفوع للاشتراك بعد تفعيله، إلا إذا حدثت مشكلة/);
+  assert.doesNotMatch(en, /money-back|guarantee[d]? refund/i, "no invented guarantee");
+});
+
+test("the owner's confirmed facts appear in both languages", () => {
+  const en = text(legalDocs.terms.en) + text(legalDocs.privacy.en);
+  const ar = text(legalDocs.terms.ar) + text(legalDocs.privacy.ar);
+  for (const phrase of ["Gaza, Palestine", "18 years", "within 30 days", "7 years", "off-server retention is 35 days", "within 14 days", "Vodafone Cash", "USDT",
+    "No tax is added", "9:00 AM until 12:00 midnight, Palestine time", "We do not commit to any specific availability level", "disappears from public view", "Cloudflare", "Hostinger"]) assert.ok(en.includes(phrase), `English mentions ${phrase}`);
+  for (const phrase of ["غزة، فلسطين", "18 سنة", "خلال 30 يومًا", "7 سنوات", "35 يومًا", "خلال 14 يومًا", "فودافون كاش", "USDT",
+    "لا تُضاف أي ضريبة", "9:00 صباحًا حتى 12:00 منتصف الليل بتوقيت فلسطين", "لا نقدّم أي التزام محدد بنسبة إتاحة", "تختفي صفحة المتجر عن العامة", "Cloudflare", "Hostinger"]) assert.ok(ar.includes(phrase), `Arabic mentions ${phrase}`);
+  assert.equal(unresolvedGapCount(), 0, "no owner-review placeholder remains");
+});
+
+test("an expired store's public page disappears in the database, matching the Terms", () => {
+  const sql = read("drizzle/0028_public_store_expiry.sql");
+  assert.match(sql, /billing_state\(s\.id\)->>'status' IN \('active','trialing','grace_period'\)/);
+  assert.match(text(legalDocs.terms.en), /renewal grace period ends\) the store page disappears from public view/);
 });
 
 test("retention figures in the Privacy Policy agree with the retention SQL", () => {
@@ -64,15 +83,16 @@ test("legal pages are indexable and in the sitemap only after explicit approval"
   const production = { DAR_ENV: "production", APP_ORIGIN: "https://wajhati.store" };
   assert.equal(legalApproved({}), false);
   assert.equal(legalApproved({ LEGAL_APPROVED: "yes" }), false);
-  // The flag alone is not approval: the text must also be finished. Today all 20 owner-review items are open.
+  // Approval needs both the deliberate flag and a finished text. The text is finished now, but the flag is the owner's.
   assert.equal(unresolvedGapCount(), Object.keys(ownerGaps).length);
-  assert.equal(legalApproved({ LEGAL_APPROVED: "true" }), false);
-  assert.equal(legalApproved({ LEGAL_APPROVED: "true" }, 3), false);
-  assert.equal(legalApproved({}, 0), false);
+  assert.equal(unresolvedGapCount(), 0);
+  assert.equal(legalApproved({ LEGAL_APPROVED: "true" }), true);
+  assert.equal(legalApproved({ LEGAL_APPROVED: "true" }, 3), false, "an open item blocks approval even with the flag");
+  assert.equal(legalApproved({}, 0), false, "a finished text alone is not approval");
   assert.equal(legalApproved({ LEGAL_APPROVED: "true" }, 0), true);
   const draft = sitemapEntries(production).map((entry) => entry.url);
-  assert.ok(!draft.some((url) => /privacy|terms/.test(url)));
-  assert.ok(!sitemapEntries({ ...production, LEGAL_APPROVED: "true" }).some((entry) => /privacy|terms/.test(entry.url)), "the flag alone never publishes the drafts");
+  assert.ok(!draft.some((url) => /privacy|terms/.test(url)), "without the flag the pages stay out of the sitemap");
+  assert.ok(!sitemapEntries({ ...production, LEGAL_APPROVED: "true" }, new Date(), 3).some((entry) => /privacy|terms/.test(entry.url)), "an open item keeps them out even with the flag");
   const approved = sitemapEntries({ ...production, LEGAL_APPROVED: "true" }, new Date(), 0).map((entry) => entry.url);
   for (const locale of ["ar", "en"]) for (const path of ["privacy", "terms"]) assert.ok(approved.includes(`https://wajhati.store/${locale}/${path}`));
   assert.deepEqual(marketingMetadata("en", "/terms", "Terms", "x", false).robots, { index: false, follow: true });

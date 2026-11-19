@@ -25,12 +25,12 @@ test("legal pages render in both languages as marked drafts and are reachable fr
       assert.equal(await page.locator("html").getAttribute("dir"), text.dir);
       assert.equal(await page.locator("html").getAttribute("lang"), locale);
       await page.getByRole("heading", { level: 1, name: text[kind] }).waitFor();
-      // Draft safeguards: banner, highlighted open items, noindex, no sitemap/index claim.
+      // The text is finished, so no owner-review marker remains. This environment does not set LEGAL_APPROVED, so the draft
+      // safeguards (banner, noindex, no sitemap entry) still apply: approval is the owner's deliberate flag.
       await page.getByRole("note").filter({ hasText: text.draft }).waitFor();
-      assert.ok(await page.locator("mark[data-owner-review]").count() > 0, "open items are highlighted");
-      // Placeholders always render as readable owner-review markers, never as raw template tokens.
+      assert.equal(await page.locator("mark[data-owner-review]").count(), 0, "no owner-review placeholder is shown");
       assert.ok(!(await page.locator("main").innerText()).includes("{{"), "no raw placeholder token is shown");
-      assert.match(await page.locator("mark[data-owner-review]").first().innerText(), /OWNER|LEGAL|المالك|القانوني/);
+      assert.ok(!/OWNER REVIEW|LEGAL REVIEW|بانتظار المالك|بانتظار المستشار/.test(await page.locator("main").innerText()), "no review text is shown");
       assert.match(await page.locator('meta[name="robots"]').getAttribute("content"), /noindex/);
       assert.match(await page.locator('link[rel="canonical"]').getAttribute("href"), new RegExp(`/${locale}/${kind}$`));
       const alternates = await page.locator('link[rel="alternate"][hreflang]').evaluateAll((links) => links.map((link) => link.hreflang).sort());

@@ -161,7 +161,9 @@ test("Phase 6A identity and operations on PostgreSQL", async (t) => {
     assert.equal(await supportOperation(manager.token,tenant,"end_legacy","billing"),"ok");
     assert.equal((await merchantBilling(merchant.id,slug,1))?.state.legacy,false);
     assert.equal((await merchantBilling(merchant.id,slug,1))?.usage.products,1);
-    assert.ok(await getPublicStore(slug));
+    // With no trial, subscription or legacy access left the public page disappears, while the catalog and the publication state stay.
+    assert.equal(await getPublicStore(slug),null);
+    assert.equal((await getMemberStore(merchant.id,slug))?.published,true);
     assert.deepEqual(await saveProduct(merchant.id,slug,null,{...product,slug:"other"}),{error:"billingPublication"});
   });
 
