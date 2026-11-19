@@ -223,9 +223,11 @@ services:
     build: { context: ../.., target: operations }
     environment:
       MIGRATION_DATABASE_URL: postgresql://dar_owner:${DAR_OWNER_PASSWORD:-}@db:5432/dar_production
-      OWNER_EMAIL: ${OWNER_EMAIL:?set OWNER_EMAIL}
+      # Defaults, not `:?` guards: Compose interpolates every service in the file, so a required variable here would break
+      # every deployment once the one-time values are removed. The scripts reject an empty email or password themselves.
+      OWNER_EMAIL: ${OWNER_EMAIL:-}
       OWNER_NAME: ${OWNER_NAME:-Owner}
-      OWNER_PASSWORD: ${OWNER_PASSWORD:?set OWNER_PASSWORD}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:-}
     command:
       - sh
       - -c
@@ -250,8 +252,8 @@ services:
     build: { context: ../.., target: operations }
     environment:
       MIGRATION_DATABASE_URL: postgresql://dar_owner:${DAR_OWNER_PASSWORD:-}@db:5432/dar_production
-      OWNER_EMAIL: ${OWNER_EMAIL:?set OWNER_EMAIL}
-      ENROLLMENT_KEY: ${ENROLLMENT_KEY:?set ENROLLMENT_KEY}
+      OWNER_EMAIL: ${OWNER_EMAIL:-}
+      ENROLLMENT_KEY: ${ENROLLMENT_KEY:-}
     command:
       - sh
       - -c
