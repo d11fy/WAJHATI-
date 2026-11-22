@@ -58,6 +58,7 @@ RUN install -d -o 10001 -g 10001 /run/dar-pdf /mail /storage
 COPY --from=production-dependencies /app/node_modules ./node_modules
 COPY --from=staging-storage /sandbox /sandbox
 COPY --from=build /app/.next ./.next
+COPY public ./public
 COPY package.json next.config.ts ./
 COPY drizzle ./drizzle
 COPY scripts/ops/validate-env.mjs scripts/ops/dokploy-bootstrap.mjs ./scripts/ops/
