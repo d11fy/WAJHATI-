@@ -1,0 +1,55 @@
+/*
+ * Merchant dashboard polish: the same calm navy / teal / white language as the public site. Visual only; structure, routes and
+ * behaviour are unchanged. Logical properties keep Arabic and English identical.
+ */
+@layer components {
+  /* Rail: solid navy, a clear active item with a cyan edge marker */
+  .wajhati-workspace-rail { background: linear-gradient(180deg, #0b1f33 0%, #0c2438 100%); box-shadow: inset -1px 0 0 rgb(255 255 255 / 6%); }
+  .wajhati-workspace-rail nav a, .wajhati-workspace-menu nav a { position: relative; transition: background-color 160ms ease, color 160ms ease; }
+  .wajhati-workspace-rail nav a[aria-current] { background: rgb(34 199 242 / 12%); color: #fff; font-weight: 700; }
+  .wajhati-workspace-rail nav a[aria-current]::before {
+    content: ""; position: absolute; inset-block: 0.6rem; inset-inline-start: -1rem; inline-size: 3px; border-radius: 0 3px 3px 0; background: var(--wajhati-cyan);
+  }
+  .wajhati-workspace-rail nav a[aria-current]::before:dir(rtl) { border-radius: 3px 0 0 3px; }
+
+  /* Header: lighter, sticky, with a soft divider */
+  .wajhati-workspace-header { position: sticky; inset-block-start: 0; z-index: 20; background: rgb(255 255 255 / 92%); backdrop-filter: saturate(1.4) blur(8px); }
+
+  /* Cards: one radius, a hairline border and a soft lift on interactive ones */
+  .wajhati-workspace-content .panel { border-color: #e1e8ec; border-radius: 1rem; box-shadow: 0 1px 2px rgb(11 31 51 / 4%); }
+
+  /* Number cards on the store overview: icon tile, big tabular number, whole card is the link */
+  .wajhati-metric { position: relative; transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+  .wajhati-metric:hover { border-color: #c5d6dd; box-shadow: 0 10px 24px rgb(11 31 51 / 8%); transform: translateY(-1px); }
+  .wajhati-metric:focus-within { outline: 2px solid var(--wajhati-teal); outline-offset: 2px; }
+  .wajhati-metric-icon { display: inline-grid; place-items: center; inline-size: 2rem; block-size: 2rem; flex: none; border-radius: 0.6rem; background: #e6f4f1; color: var(--wajhati-teal); }
+  .wajhati-metric dd { font-variant-numeric: tabular-nums; color: var(--wajhati-navy); }
+  .wajhati-metric-link { color: inherit; outline: none; }
+  .wajhati-metric-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+
+  /* Tables: comfortable rows, quiet header, hover */
+  .wajhati-workspace-content table { border-collapse: separate; border-spacing: 0; }
+  .wajhati-workspace-content thead th { font-size: 0.8rem; font-weight: 700; color: #5b7080; letter-spacing: 0; }
+  .wajhati-workspace-content tbody tr { transition: background-color 120ms ease; }
+  .wajhati-workspace-content tbody tr:hover { background: #f6f9fa; }
+
+  /* Forms: clearer focus, consistent control radius */
+  .wajhati-workspace-content .control { border-color: #d6e0e5; background: #fff; transition: border-color 140ms ease, box-shadow 140ms ease; }
+  .wajhati-workspace-content .control:focus { border-color: var(--wajhati-teal); box-shadow: 0 0 0 3px rgb(15 118 110 / 14%); outline: none; }
+
+  /* Buttons: same feel as the public site */
+  .wajhati-workspace-content .button-primary { box-shadow: 0 6px 16px rgb(15 118 110 / 22%); }
+  .wajhati-workspace-content .button-primary:hover { transform: translateY(-1px); }
+  .wajhati-workspace-content .button { transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+
+  /* Mobile tab bar: a little more presence for the active tab */
+  @media (max-width: 63.99rem) {
+    .wajhati-workspace-tabs { box-shadow: 0 -6px 20px rgb(11 31 51 / 6%); }
+    .wajhati-workspace-tabs a[aria-current] { background: #f2f8f7; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wajhati-metric, .wajhati-workspace-content .button { transition: none; }
+    .wajhati-metric:hover, .wajhati-workspace-content .button-primary:hover { transform: none; }
+  }
+}

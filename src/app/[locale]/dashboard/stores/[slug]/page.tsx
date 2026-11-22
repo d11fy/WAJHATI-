@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, ExternalLink, LayoutList, MessageSquare, Palette, Store } from "lucide-react";
+import { BadgeCheck, Boxes, CheckCircle2, Circle, ExternalLink, LayoutGrid, LayoutList, MessageSquare, Palette, Store } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreditsMeter } from "@/components/ai/credits-meter";
@@ -36,10 +36,10 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
   const paused = store.published && !live ? await getPausedStore(store.slug) : null;
   const operation = store.published ? "unpublishStore" : "publishStore";
   const metrics = [
-    [ar ? "المنتجات المنشورة" : "Published products", data.publishedProducts],
-    [catalog.categories, data.categoryCount],
-    [orders.orders, data.orderCount],
-    [ar ? "الطلبات المؤكدة" : "Confirmed orders", data.confirmed],
+    [ar ? "المنتجات المنشورة" : "Published products", data.publishedProducts, Boxes, "products"],
+    [catalog.categories, data.categoryCount, LayoutGrid, "categories"],
+    [orders.orders, data.orderCount, MessageSquare, "orders"],
+    [ar ? "الطلبات المؤكدة" : "Confirmed orders", data.confirmed, BadgeCheck, "orders"],
   ] as const;
 
   const checklist = [
@@ -92,9 +92,10 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
           {live && <Link className="button button-secondary" href={publicPath}>{t.publicView}<ExternalLink size={17} aria-hidden="true" /></Link>}
         </div>
       </section>
-      <dl className="my-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {metrics.map(([label, value]) => <div className="panel min-w-0 p-4" key={label}>
-          <dt className="text-sm font-semibold text-muted">{label}</dt><dd className="mt-1 text-3xl font-black">{number.format(value)}</dd>
+      <dl className="wajhati-metrics my-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {metrics.map(([label, value, Icon, area]) => <div className="panel wajhati-metric min-w-0 p-4" key={label}>
+          <dt className="flex items-center gap-2 text-sm font-semibold text-muted"><span className="wajhati-metric-icon" aria-hidden="true"><Icon size={17} /></span>{label}</dt>
+          <dd className="mt-2 text-3xl font-black"><Link className="wajhati-metric-link" href={`${merchantPath}/${area}`}>{number.format(value)}</Link></dd>
         </div>)}
       </dl>
       {wallet && <CreditsMeter locale={locale} slug={slug} wallet={wallet} owner={store.role === "owner"} />}

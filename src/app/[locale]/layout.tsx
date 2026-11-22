@@ -23,6 +23,7 @@ import "../marketing-hero.css";
 import "../marketing-sections.css";
 import "../premium-storefront.css";
 import "../storefront-chrome.css";
+import "../dashboard-polish.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { locales } from "@/lib/i18n";

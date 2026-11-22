@@ -61,7 +61,8 @@ export function marketingMetadata(locale: Locale, path: string, title: string | 
     ...(index ? {} : { robots: { index: false, follow: true } }),
     metadataBase: siteOrigin(),
     alternates: { canonical: url, languages: Object.fromEntries([...locales.map((language) => [language, `/${language}${path}`]), ["x-default", `/ar${path}`]]) },
-    openGraph: { type: "website", siteName: brand, title: title ? `${title} · ${brand}` : brand, description, url, locale: locale === "ar" ? "ar_AR" : "en_US" },
-    twitter: { card: "summary", title: title ? `${title} · ${brand}` : brand, description },
+    openGraph: { type: "website", siteName: brand, title: title ? `${title} · ${brand}` : brand, description, url, locale: locale === "ar" ? "ar_AR" : "en_US",
+      images: [{ url: `/og/wajhati-${locale}.jpg`, width: 1200, height: 630, alt: brand }] },
+    twitter: { card: "summary_large_image", title: title ? `${title} · ${brand}` : brand, description, images: [`/og/wajhati-${locale}.jpg`] },
   };
 }

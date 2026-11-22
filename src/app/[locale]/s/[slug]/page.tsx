@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { ThemedHome } from "@/components/store-theme/storefront";
 import { catalogFilters, localizedValue } from "@/lib/catalog";
 import { designAssetPath } from "@/lib/theme-config";
+import { publicImagePath } from "@/components/catalog/catalog-ui";
 import { getPublicCatalog } from "@/server/catalog/public";
 import { routeLocale } from "@/server/locale";
 import { PausedStore } from "@/components/paused-store";
@@ -24,6 +25,11 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/s/[slug]
   const metadataBase = new URL(process.env.APP_ORIGIN ?? "http://localhost:3000");
   const path = `/s/${slug}`;
   const ogAsset = design.assets.banner ?? design.assets.logo;
+  // Shared links need a picture: the banner or logo, else the first product photo, else the platform card.
+  const productImage = ogAsset ? null : (await getPublicCatalog(slug, catalogFilters({})))?.products.find((product) => product.imageId)?.imageId ?? null;
+  const image = ogAsset ? { url: designAssetPath(slug, ogAsset), alt: store.name }
+    : productImage ? { url: publicImagePath(slug, productImage), alt: store.name }
+    : { url: `/og/wajhati-${locale}.jpg`, width: 1200, height: 630, alt: store.name };
   return {
     title: store.name,
     description,
@@ -35,8 +41,9 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/s/[slug]
       description,
       url: `/${locale}${path}`,
       locale,
-      images: ogAsset ? [{ url: designAssetPath(slug, ogAsset), alt: store.name }] : undefined,
+      images: [image],
     },
+    twitter: { card: "summary_large_image", title, description, images: [image.url] },
   };
 }
 

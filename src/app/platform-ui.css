@@ -1,4 +1,12 @@
 /* Platform styles are opt-in. Public merchant storefronts and their previews keep their own tokens. */
+
+/*
+ * Metric-matched fallbacks. Until Cairo / Poppins arrive the page draws with a local font scaled to the same width, ascent and
+ * descent (measured in Chrome against Arial), so the swap to the web font does not move the layout (it caused CLS 0.23 on home).
+ */
+@font-face { font-family: "Cairo Fallback"; src: local("Arial"), local("ArialMT"), local("Arimo"); size-adjust: 121.61%; ascent-override: 106.9%; descent-override: 46.87%; line-gap-override: 0%; }
+@font-face { font-family: "Poppins Fallback"; src: local("Arial"), local("ArialMT"), local("Arimo"); size-adjust: 112.05%; ascent-override: 93.71%; descent-override: 31.24%; line-gap-override: 0%; }
+
 @layer components {
   .wajhati-brand-mark {
     position: relative;
@@ -33,7 +41,7 @@
     --wajhati-radius-control: 0.75rem;
     --wajhati-radius-card: 1.0625rem;
     --wajhati-elevation: 0 1px 3px rgb(11 31 51 / 5%);
-    --font-sans: "Poppins", "Cairo Variable", Arial, sans-serif;
+    --font-sans: "Poppins", "Cairo Variable", "Poppins Fallback", Arial, sans-serif;
     --color-ink: var(--wajhati-text);
     --color-muted: color-mix(in srgb, var(--wajhati-secondary) 90%, var(--wajhati-navy));
     --color-brand: var(--wajhati-teal);
@@ -48,7 +56,7 @@
     font-family: var(--font-sans);
   }
 
-  .wajhati-platform:lang(ar) { --font-sans: "Cairo Variable", "Poppins", Arial, sans-serif; }
+  .wajhati-platform:lang(ar) { --font-sans: "Cairo Variable", "Poppins", "Cairo Fallback", Arial, sans-serif; }
 
   .wajhati-platform .button {
     min-block-size: 3.25rem;

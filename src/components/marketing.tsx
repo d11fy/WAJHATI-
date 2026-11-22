@@ -22,9 +22,7 @@ import { registrationAvailable } from "@/lib/billing";
 import { copy } from "@/lib/copy";
 import { otherLocale, type Locale } from "@/lib/i18n";
 import { defaultPlatformWhatsapp, subscriptionContact } from "@/lib/platform-contact";
-import { publicSignupEnabled } from "@/server/auth/mail";
-import { marketingBilling } from "@/server/billing/marketing";
-import { contactSettings } from "@/server/platform/contact";
+import { cachedContactSettings, cachedMarketingBilling, cachedPublicSignup } from "@/server/marketing-cache";
 
 export type MarketingSection = "home" | "features" | "pricing" | "faq";
 type Search = { [key: string]: string | string[] | undefined };
@@ -125,14 +123,14 @@ export async function Marketing({ locale, section, search = {} }: { locale: Loca
   const alt = otherLocale(locale);
   const page = section === "home" ? "" : `/${section}`;
   const localSignup = registrationAvailable(process.env.APP_ORIGIN, process.env.DAR_LOCAL_SIGNUP);
-  const publicSignup = (await publicSignupEnabled());
+  const publicSignup = await cachedPublicSignup();
   const signup = localSignup || publicSignup;
   const action = `${root}/${signup ? "sign-up" : "sign-in"}`;
   const actionLabel = localSignup ? t.localAccess : publicSignup ? t.start : copy[locale].signIn;
   const accessNote = localSignup ? t.localNote : publicSignup ? null : t.accessClosed;
   const links = [`${root}/features`, `${root}#how`, `${root}/pricing`, `${root}/faq`];
-  const billing = section === "pricing" || section === "home" ? await marketingBilling() : null;
-  const contact = section === "pricing" || section === "home" ? await contactSettings() : null;
+  const billing = section === "pricing" || section === "home" ? await cachedMarketingBilling() : null;
+  const contact = section === "pricing" || section === "home" ? await cachedContactSettings() : null;
   const supportUrl = subscriptionContact(contact?.whatsapp ?? defaultPlatformWhatsapp, locale);
   const number = new Intl.NumberFormat(locale);
   const nav = <><Link href={`${root}#themes`}>{ar ? "الثيمات" : "Themes"}</Link>{t.nav.map((label, index) => <Link key={label} href={links[index]} aria-current={links[index] === root + page ? "page" : undefined}>{label}</Link>)}</>;
