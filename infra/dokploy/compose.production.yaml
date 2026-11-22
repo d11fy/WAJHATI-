@@ -68,11 +68,21 @@ services:
       - traefik.http.routers.wajhati-production.tls.certresolver=letsencrypt
       - traefik.http.services.wajhati-production.loadbalancer.server.port=3000
       # Plain HTTP only redirects to HTTPS.
-      - traefik.http.routers.wajhati-production-http.rule=Host(`wajhati.store`)
+      - traefik.http.routers.wajhati-production-http.rule=Host(`wajhati.store`) || Host(`www.wajhati.store`)
       - traefik.http.routers.wajhati-production-http.entrypoints=web
       - traefik.http.routers.wajhati-production-http.middlewares=wajhati-production-https
       - traefik.http.middlewares.wajhati-production-https.redirectscheme.scheme=https
       - traefik.http.middlewares.wajhati-production-https.redirectscheme.permanent=true
+      # www is only a doorway: a certificate for it, then a permanent redirect to the bare domain.
+      - traefik.http.routers.wajhati-www.rule=Host(`www.wajhati.store`)
+      - traefik.http.routers.wajhati-www.entrypoints=websecure
+      - traefik.http.routers.wajhati-www.tls=true
+      - traefik.http.routers.wajhati-www.tls.certresolver=letsencrypt
+      - traefik.http.routers.wajhati-www.service=wajhati-production
+      - traefik.http.routers.wajhati-www.middlewares=wajhati-www-redirect
+      - traefik.http.middlewares.wajhati-www-redirect.redirectregex.regex=^https://www\.wajhati\.store/(.*)
+      - traefik.http.middlewares.wajhati-www-redirect.redirectregex.replacement=https://wajhati.store/$${1}
+      - traefik.http.middlewares.wajhati-www-redirect.redirectregex.permanent=true
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
