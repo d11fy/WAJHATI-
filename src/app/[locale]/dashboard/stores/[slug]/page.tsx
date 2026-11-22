@@ -1,6 +1,7 @@
 import { CheckCircle2, Circle, ExternalLink, LayoutList, MessageSquare, Palette, Store } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CreditsMeter } from "@/components/ai/credits-meter";
 import { CatalogFrame, Price } from "@/components/catalog/catalog-ui";
 import { ConfirmCatalog } from "@/components/catalog/editor";
 import { StorefrontLink } from "@/components/storefront-link";
@@ -9,6 +10,7 @@ import { billingCopy } from "@/lib/billing-copy";
 import { themeCopy } from "@/lib/theme-copy";
 import { copy } from "@/lib/copy";
 import { orderCopy } from "@/lib/order-copy";
+import { readAiWallet } from "@/server/ai/wallet-view";
 import { requireUser } from "@/server/auth/session";
 import { routeLocale } from "@/server/locale";
 import { getPausedStore, getPublicStore } from "@/server/stores/repository";
@@ -29,6 +31,7 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
   const number = new Intl.NumberFormat(locale);
   const publicPath = `/${locale}/s/${store.slug}`;
   const merchantPath = `/${locale}/dashboard/stores/${store.slug}`;
+  const wallet = await readAiWallet(user.id, slug);
   const live = store.published && Boolean(await getPublicStore(store.slug));
   const paused = store.published && !live ? await getPausedStore(store.slug) : null;
   const operation = store.published ? "unpublishStore" : "publishStore";
@@ -94,6 +97,7 @@ export default async function StoreDashboard({ params }: PageProps<"/[locale]/da
           <dt className="text-sm font-semibold text-muted">{label}</dt><dd className="mt-1 text-3xl font-black">{number.format(value)}</dd>
         </div>)}
       </dl>
+      {wallet && <CreditsMeter locale={locale} slug={slug} wallet={wallet} owner={store.role === "owner"} />}
       <section className="panel mb-5 grid gap-4 p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>

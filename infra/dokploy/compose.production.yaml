@@ -44,6 +44,10 @@ services:
       PAYMENT_PROOF_KEYRING: ${PAYMENT_PROOF_KEYRING:?set PAYMENT_PROOF_KEYRING}
       OPS_METRICS_TOKEN: ${OPS_METRICS_TOKEN:?set OPS_METRICS_TOKEN}
       SMTP_CONFIG_KEY: ${SMTP_CONFIG_KEY:?set SMTP_CONFIG_KEY}
+      # WAJHATI AI (optional). Without DEEPSEEK_API_KEY the assistant shows "not set up" and never calls the provider or charges credits.
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      AI_ASSISTANT_ENABLED: ${AI_ASSISTANT_ENABLED:-true}
       PAYMENT_RENDERER_SOCKET: /run/dar-pdf/worker.sock
     volumes:
       - pdf_socket:/run/dar-pdf:ro

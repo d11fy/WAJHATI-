@@ -4,6 +4,7 @@ import { ConfirmCatalog, ProductEditor } from "@/components/catalog/editor";
 import { ImageManager } from "@/components/catalog/image-manager";
 import { localizedValue, priceInput } from "@/lib/catalog";
 import { catalogCopy } from "@/lib/catalog-copy";
+import { aiFeatureEnabled } from "@/server/ai/provider";
 import { requireUser } from "@/server/auth/session";
 import { getProductForEdit } from "@/server/catalog/merchant";
 import { routeLocale } from "@/server/locale";
@@ -28,7 +29,7 @@ export default async function EditProductPage({ params, searchParams }: PageProp
     </div>
     {(await searchParams).saved === "1" && <p className="tag mb-4" role="status">{t.saved}</p>}
     <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      <ProductEditor locale={locale} store={slug} id={productId} currency={store.currency}
+      <ProductEditor locale={locale} store={slug} id={productId} currency={store.currency} ai={aiFeatureEnabled()}
         categories={data.categories.map((category) => ({ id: category.id, label: localizedValue(locale, category.nameAr, category.nameEn) }))}
         initial={{
           nameAr: product.nameAr, nameEn: product.nameEn ?? "", slug: product.slug, position: String(product.position),

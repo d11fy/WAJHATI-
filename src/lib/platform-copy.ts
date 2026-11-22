@@ -1,10 +1,10 @@
 import type { PlatformArea } from "@/server/platform/repository";
 
-export const areas = ["overview","merchants","stores","subscriptions","plans","payments","setup","themes","audit","jobs","settings"] as const;
+export const areas = ["overview","merchants","stores","subscriptions","plans","payments","setup","themes","ai","audit","jobs","settings"] as const;
 export const platformCopy = {
   en: {
     title: "Platform administration", overview: "Overview", merchants: "Merchants", stores: "Stores", subscriptions: "Subscriptions", plans: "Plans and pricing",
-    payments: "Payments", setup: "Setup requests", themes: "Themes", audit: "Audit log", jobs: "Job activity", settings: "Platform settings",
+    payments: "Payments", setup: "Setup requests", themes: "Themes", ai: "AI management", audit: "Audit log", jobs: "Job activity", settings: "Platform settings",
     mfa: "Administrator verification", enroll: "Enroll authenticator", recover: "Recover authenticator", verify: "Verify code",
     code: "Authenticator code", enrollment: "One-time enrollment key", password: "Current password", recovery: "Single-use recovery code",
     seed: "Add this setup key to your authenticator, then enter the six-digit code.", codes: "Save these recovery codes securely. They are shown once.",
@@ -86,7 +86,7 @@ export const platformCopy = {
   },
   ar: {
     title: "إدارة المنصة", overview: "نظرة عامة", merchants: "التجار", stores: "المتاجر", subscriptions: "الاشتراكات", plans: "الباقات والأسعار",
-    payments: "الدفعات", setup: "طلبات التجهيز", themes: "الثيمات", audit: "سجل التدقيق", jobs: "حالة المهام", settings: "إعدادات المنصة",
+    payments: "الدفعات", setup: "طلبات التجهيز", themes: "الثيمات", ai: "إدارة الذكاء الاصطناعي", audit: "سجل التدقيق", jobs: "حالة المهام", settings: "إعدادات المنصة",
     mfa: "التحقق الإداري", enroll: "إعداد تطبيق المصادقة", recover: "استعادة المصادقة", verify: "تحقق من الرمز",
     code: "رمز تطبيق المصادقة", enrollment: "مفتاح التفعيل لمرة واحدة", password: "كلمة المرور الحالية", recovery: "رمز الاسترداد لمرة واحدة",
     seed: "أضف هذا المفتاح في تطبيق المصادقة، ثم أدخل الرمز المكوّن من ستة أرقام.", codes: "احفظ رموز الاسترداد بأمان. تظهر مرة واحدة.",

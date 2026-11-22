@@ -5,7 +5,7 @@ import { isSessionToken } from "@/server/auth/crypto";
 
 export type Role = "owner" | "administrator" | "reviewer";
 export type PlatformAccess = { roles: Role[]; enrolled: boolean; elevated: boolean; fresh: boolean };
-export type PlatformArea = "overview" | "merchants" | "stores" | "subscriptions" | "plans" | "payments" | "setup" | "themes" | "settings" | "audit" | "jobs";
+export type PlatformArea = "overview" | "merchants" | "stores" | "subscriptions" | "plans" | "payments" | "setup" | "themes" | "ai" | "settings" | "audit" | "jobs";
 export type PlatformResult = "ok" | "invalid" | "denied" | "unavailable";
 
 async function value<T>(query: SQL) {

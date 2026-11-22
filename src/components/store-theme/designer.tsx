@@ -8,6 +8,8 @@ import type { Locale } from "@/lib/i18n";
 import { defaultDesign, designAssetKinds, designAssetPath, emptyFamilyContent, isFamilyTheme, switchTheme, themeFonts, themeIds, themeRegistry, type AssetKind, type FamilyContent, type ThemeConfig, type ThemeId } from "@/lib/theme-config";
 import { familyLabels } from "@/lib/theme-families";
 import { themeCopy } from "@/lib/theme-copy";
+import { AIWritingAssistant } from "@/components/ai/writing-assistant";
+import { StoreContentBuilder } from "@/components/ai/store-content-builder";
 import { themePreviews } from "@/components/theme-previews";
 import { confirmDesign, submitDesign } from "@/server/themes/actions";
 
@@ -16,7 +18,7 @@ type Asset = { id: string; kind: AssetKind };
 type Props = {
   locale: Locale; slug: string; initial: ThemeConfig; revision: number; publishedRevision: number | null;
   hasPrevious: boolean;
-  owner: boolean; allowed: readonly ThemeId[]; premium: boolean; products: Choice[]; categories: Choice[]; assets: Asset[];
+  owner: boolean; ai?: boolean; allowed: readonly ThemeId[]; premium: boolean; products: Choice[]; categories: Choice[]; assets: Asset[];
 };
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
@@ -179,11 +181,13 @@ function Preview({ locale, slug, revision }: { locale: Locale; slug: string; rev
   </aside>;
 }
 
-export function Designer({ locale, slug, initial, revision, publishedRevision, hasPrevious, owner, allowed, premium, products, categories, assets }: Props) {
+export function Designer({ locale, slug, initial, revision, publishedRevision, hasPrevious, owner, ai = false, allowed, premium, products, categories, assets }: Props) {
   const t = themeCopy[locale];
   const [config, setConfig] = useState(initial);
   const [files, setFiles] = useState(assets);
   const [error, action, pending] = useActionState(submitDesign.bind(null, locale, slug, revision), null);
+  const form = useRef<HTMLFormElement>(null);
+  const saveAfterAi = useRef(false);
   const dirty = JSON.stringify(initial) !== JSON.stringify(config);
   const family = isFamilyTheme(config.theme) ? config.theme : null;
   const content = family ? config.familyContent?.[family] ?? emptyFamilyContent : null;
@@ -197,6 +201,13 @@ export function Designer({ locale, slug, initial, revision, publishedRevision, h
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
+
+  // "Apply and save as draft" from the AI builder: submit through the normal save action once the new values are in the hidden field.
+  useEffect(() => {
+    if (!saveAfterAi.current) return;
+    saveAfterAi.current = false;
+    form.current?.requestSubmit();
+  }, [config]);
 
   function changeFamilyContent(key: keyof FamilyContent, value: string) {
     if (!family) return;
@@ -220,6 +231,7 @@ export function Designer({ locale, slug, initial, revision, publishedRevision, h
   return <>
     <div className="mb-5 flex flex-wrap items-center gap-2">
       <button form="design-form" className="button button-primary" disabled={pending}>{pending ? t.working : t.saveDraft}</button>
+      {ai && <StoreContentBuilder locale={locale} slug={slug} config={config} owner={owner} onApply={(next, save) => { saveAfterAi.current = save; setConfig(next); }} />}
       {owner && <DesignCommand locale={locale} slug={slug} revision={revision} operation="publish" disabled={dirty || pending || revision === 0 || revision === publishedRevision} />}
       <DesignCommand locale={locale} slug={slug} revision={revision} operation="restore" disabled={pending || publishedRevision === null} />
       {owner && hasPrevious && <DesignCommand locale={locale} slug={slug} revision={revision} operation="restorePrevious" disabled={pending} />}
@@ -232,7 +244,7 @@ export function Designer({ locale, slug, initial, revision, publishedRevision, h
     {error && <p className="error mb-4" role="alert">{t[error]}</p>}
     <div className="wajhati-designer-layout">
       <div className="wajhati-designer-preview"><Preview locale={locale} slug={slug} revision={revision} /></div>
-      <form id="design-form" action={action} className="grid min-w-0 gap-4" aria-busy={pending}>
+      <form id="design-form" ref={form} action={action} className="grid min-w-0 gap-4" aria-busy={pending}>
         <input type="hidden" name="config" value={JSON.stringify(config)} />
         <Panel title={t.library}>
           <fieldset className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
@@ -270,23 +282,31 @@ export function Designer({ locale, slug, initial, revision, publishedRevision, h
             const direction = language === "Ar" ? "rtl" : "ltr";
             const languageLabel = language === "Ar" ? (ar ? "بالعربية" : "Arabic") : (ar ? "بالإنجليزية" : "English");
             return <div className="grid gap-3" key={language}>
-              <label className="field">{ar ? "عبارة فوق العنوان" : "Hero eyebrow"} · {languageLabel}
-                <input className="control" dir={direction} maxLength={80} value={content[`kicker${language}`]} onChange={(event) => changeFamilyContent(`kicker${language}`, event.target.value)} />
-              </label>
-              <label className="field">{ar ? "عنوان القسم" : "Section heading"} · {languageLabel}
-                <input className="control" dir={direction} maxLength={120} value={content[`heading${language}`]} onChange={(event) => changeFamilyContent(`heading${language}`, event.target.value)} />
-              </label>
-              <label className="field">{ar ? "نص القسم" : "Section text"} · {languageLabel}
-                <textarea className="control min-h-20" dir={direction} maxLength={520} value={content[`body${language}`]} onChange={(event) => changeFamilyContent(`body${language}`, event.target.value)} />
-              </label>
+              {(["kicker", "heading", "body"] as const).map((base) => {
+                const key = `${base}${language}` as const;
+                const other = content[`${base}${language === "Ar" ? "En" : "Ar"}` as const];
+                const title = base === "kicker" ? (ar ? "عبارة فوق العنوان" : "Hero eyebrow") : base === "heading" ? (ar ? "عنوان القسم" : "Section heading") : (ar ? "نص القسم" : "Section text");
+                return <div className="grid gap-2" key={base}>
+                  <label className="field">{title} · {languageLabel}
+                    {base === "body" ? <textarea className="control min-h-20" dir={direction} maxLength={520} value={content[key]} onChange={(event) => changeFamilyContent(key, event.target.value)} />
+                      : <input className="control" dir={direction} maxLength={base === "kicker" ? 80 : 120} value={content[key]} onChange={(event) => changeFamilyContent(key, event.target.value)} />}
+                  </label>
+                  {ai && <div><AIWritingAssistant locale={locale} slug={slug} fieldId={`family.${key}`} value={content[key]} siblingValue={other} onApply={(text) => changeFamilyContent(key, text)} /></div>}
+                </div>;
+              })}
             </div>;
           })}
         </Panel>}
         <Panel title={t.content}>
-          {(["titleAr", "titleEn", "descriptionAr", "descriptionEn"] as const).map((key) => <label key={key} className="field">{t[key]}
-            {key.startsWith("title") ? <input className="control" name={key} dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={120} value={config.hero[key]} onChange={(event) => setConfig({ ...config, hero: { ...config.hero, [key]: event.target.value } })} />
-              : <textarea className="control min-h-20" name={key} dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={320} value={config.hero[key]} onChange={(event) => setConfig({ ...config, hero: { ...config.hero, [key]: event.target.value } })} />}
-          </label>)}
+          {(["titleAr", "titleEn", "descriptionAr", "descriptionEn"] as const).map((key) => <div className="grid gap-2" key={key}>
+            <label className="field">{t[key]}
+              {key.startsWith("title") ? <input className="control" name={key} dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={120} value={config.hero[key]} onChange={(event) => setConfig({ ...config, hero: { ...config.hero, [key]: event.target.value } })} />
+                : <textarea className="control min-h-20" name={key} dir={key.endsWith("Ar") ? "rtl" : "ltr"} maxLength={320} value={config.hero[key]} onChange={(event) => setConfig({ ...config, hero: { ...config.hero, [key]: event.target.value } })} />}
+            </label>
+            {ai && <div><AIWritingAssistant locale={locale} slug={slug} fieldId={`hero.${key}`} value={config.hero[key]}
+              siblingValue={config.hero[(key.endsWith("Ar") ? key.replace("Ar", "En") : key.replace("En", "Ar")) as keyof typeof config.hero]}
+              onApply={(text) => setConfig((current) => ({ ...current, hero: { ...current.hero, [key]: text } }))} /></div>}
+          </div>)}
         </Panel>
         <Panel title={t.media}>
           {designAssetKinds.map((kind) => <AssetPicker key={kind} locale={locale} slug={slug} kind={kind} assets={files} selected={config.assets[kind]}

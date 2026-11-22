@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { AIWritingAssistant } from "@/components/ai/writing-assistant";
 import { catalogCopy } from "@/lib/catalog-copy";
 import type { Locale } from "@/lib/i18n";
 import { confirmCatalogAction, submitCategory, submitProduct } from "@/server/catalog/actions";
@@ -16,12 +17,20 @@ const emptyProduct: ProductFields = {
   state: "draft", featured: false, available: true, categoryIds: [],
 };
 
-function IdentityFields({ locale, fields, change }: { locale: Locale; fields: Identity; change: (key: keyof Identity, value: string) => void }) {
+type Assist = { store: string; context?: { category?: string } };
+
+function IdentityFields({ locale, fields, change, assist }: { locale: Locale; fields: Identity; change: (key: keyof Identity, value: string) => void; assist?: Assist }) {
   const t = catalogCopy[locale];
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <label className="field">{t.nameAr}<input className="control" name="nameAr" dir="rtl" maxLength={100} required value={fields.nameAr} onChange={(e) => change("nameAr", e.target.value)} /></label>
-      <label className="field">{t.nameEn}<input className="control" name="nameEn" dir="ltr" maxLength={100} value={fields.nameEn} onChange={(e) => change("nameEn", e.target.value)} /></label>
+      <div className="grid content-start gap-2">
+        <label className="field">{t.nameAr}<input className="control" name="nameAr" dir="rtl" maxLength={100} required value={fields.nameAr} onChange={(e) => change("nameAr", e.target.value)} /></label>
+        {assist && <div><AIWritingAssistant locale={locale} slug={assist.store} fieldId="product.nameAr" value={fields.nameAr} siblingValue={fields.nameEn} context={assist.context} onApply={(text) => change("nameAr", text)} /></div>}
+      </div>
+      <div className="grid content-start gap-2">
+        <label className="field">{t.nameEn}<input className="control" name="nameEn" dir="ltr" maxLength={100} value={fields.nameEn} onChange={(e) => change("nameEn", e.target.value)} /></label>
+        {assist && <div><AIWritingAssistant locale={locale} slug={assist.store} fieldId="product.nameEn" value={fields.nameEn} siblingValue={fields.nameAr} context={assist.context} onApply={(text) => change("nameEn", text)} /></div>}
+      </div>
       <label className="field">{t.slug}<input className="control" name="slug" dir="ltr" minLength={3} maxLength={48} autoCapitalize="none" spellCheck={false} required value={fields.slug} onChange={(e) => change("slug", e.target.value)} /></label>
       <label className="field">{t.position}<input className="control" name="position" dir="ltr" inputMode="numeric" maxLength={6} required value={fields.position} onChange={(e) => change("position", e.target.value)} /></label>
     </div>
@@ -42,8 +51,8 @@ export function CategoryEditor({ locale, store, id, initial }: { locale: Locale;
   );
 }
 
-export function ProductEditor({ locale, store, currency, id, initial, categories }: {
-  locale: Locale; store: string; currency: string; id: string | null; initial?: ProductFields;
+export function ProductEditor({ locale, store, currency, id, initial, categories, ai = false }: {
+  locale: Locale; store: string; currency: string; id: string | null; initial?: ProductFields; ai?: boolean;
   categories: { id: string; label: string }[];
 }) {
   const t = catalogCopy[locale];
@@ -55,10 +64,12 @@ export function ProductEditor({ locale, store, currency, id, initial, categories
   }
   return (
     <form action={action} className="panel grid gap-5 p-5 sm:p-6" aria-busy={pending}>
-      <IdentityFields locale={locale} fields={fields} change={change} />
+      <IdentityFields locale={locale} fields={fields} change={change} assist={ai ? { store } : undefined} />
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="field">{t.descriptionAr}<textarea className="control min-h-24" name="descriptionAr" dir="rtl" maxLength={2000} value={fields.descriptionAr} onChange={(e) => change("descriptionAr", e.target.value)} /></label>
-        <label className="field">{t.descriptionEn}<textarea className="control min-h-24" name="descriptionEn" dir="ltr" maxLength={2000} value={fields.descriptionEn} onChange={(e) => change("descriptionEn", e.target.value)} /></label>
+        <div className="grid content-start gap-2"><label className="field">{t.descriptionAr}<textarea className="control min-h-24" name="descriptionAr" dir="rtl" maxLength={2000} value={fields.descriptionAr} onChange={(e) => change("descriptionAr", e.target.value)} /></label>
+          {ai && <div><AIWritingAssistant locale={locale} slug={store} fieldId="product.descriptionAr" value={fields.descriptionAr} siblingValue={fields.descriptionEn} context={{ productName: fields.nameAr || fields.nameEn }} onApply={(text) => change("descriptionAr", text)} /></div>}</div>
+        <div className="grid content-start gap-2"><label className="field">{t.descriptionEn}<textarea className="control min-h-24" name="descriptionEn" dir="ltr" maxLength={2000} value={fields.descriptionEn} onChange={(e) => change("descriptionEn", e.target.value)} /></label>
+          {ai && <div><AIWritingAssistant locale={locale} slug={store} fieldId="product.descriptionEn" value={fields.descriptionEn} siblingValue={fields.descriptionAr} context={{ productName: fields.nameEn || fields.nameAr }} onApply={(text) => change("descriptionEn", text)} /></div>}</div>
         <label className="field">{t.price} ({currency})<input className="control" name="price" dir="ltr" inputMode="decimal" maxLength={20} required value={fields.price} onChange={(e) => change("price", e.target.value)} /></label>
         <label className="field">{t.compareAt} ({currency})<input className="control" name="compareAt" dir="ltr" inputMode="decimal" maxLength={20} value={fields.compareAt} onChange={(e) => change("compareAt", e.target.value)} /></label>
         <label className="field">{t.sku}<input className="control" name="sku" dir="auto" maxLength={64} value={fields.sku} onChange={(e) => change("sku", e.target.value)} /></label>

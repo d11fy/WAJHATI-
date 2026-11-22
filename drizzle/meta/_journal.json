@@ -211,6 +211,13 @@
       "when": 1794987409829,
       "tag": "0029_paused_store_notice",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1795074409829,
+      "tag": "0030_ai_credits",
+      "breakpoints": true
     }
   ]
 }

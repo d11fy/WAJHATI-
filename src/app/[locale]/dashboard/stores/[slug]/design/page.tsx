@@ -3,6 +3,7 @@ import { CatalogFrame } from "@/components/catalog/catalog-ui";
 import { Designer } from "@/components/store-theme/designer";
 import { localizedValue } from "@/lib/catalog";
 import { themeCopy } from "@/lib/theme-copy";
+import { aiFeatureEnabled } from "@/server/ai/provider";
 import { requireUser } from "@/server/auth/session";
 import { routeLocale } from "@/server/locale";
 import { getDesigner } from "@/server/themes/design";
@@ -26,7 +27,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/[
     </div>
     {notice && <p role="status" className="tag mb-4">{notice}</p>}
     <Designer key={`${data.revision}-${data.publishedRevision}`} locale={locale} slug={slug} initial={data.draft} revision={data.revision}
-      publishedRevision={data.publishedRevision} hasPrevious={data.hasPrevious} owner={data.store.role === "owner"} allowed={data.allowed} premium={data.premium} assets={data.assets}
+      publishedRevision={data.publishedRevision} hasPrevious={data.hasPrevious} owner={data.store.role === "owner"} ai={aiFeatureEnabled()} allowed={data.allowed} premium={data.premium} assets={data.assets}
       products={labels(data.products)} categories={labels(data.categories)} />
   </CatalogFrame>;
 }

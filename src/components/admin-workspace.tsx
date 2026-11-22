@@ -14,7 +14,7 @@ import settings from "@/assets/wajhati/admin-settings.svg";
 
 const icons = {
   overview: home, merchants: users, stores: store, subscriptions: chart, plans: chart,
-  payments: credit, setup: clock, themes: store, audit: shield, jobs: clock, settings,
+  payments: credit, setup: clock, themes: store, ai: chart, audit: shield, jobs: clock, settings,
 };
 
 export function AdminWorkspace({ locale, path, roles, children }: {

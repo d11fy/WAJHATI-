@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminWorkspace } from "@/components/admin-workspace";
+import { AiAdminPanel } from "@/components/ai/admin-panel";
 import {
   AdminMutation,
   ManualSubscriptionForm,
@@ -20,6 +21,7 @@ import { countries, currencies } from "@/lib/validation";
 import { formatPrice, type Currency } from "@/lib/catalog";
 import { subscriptionLabels, paymentLabels, setupLabels } from "@/lib/billing-copy";
 import type { PaymentStatus, Subscription } from "@/lib/billing";
+import { aiAdminOverview } from "@/server/ai/admin";
 import { readSessionToken, readUser } from "@/server/auth/session";
 import { routeLocale } from "@/server/locale";
 import { configAction, contactAction, roleAction, supportAction } from "@/server/platform/actions";
@@ -249,18 +251,19 @@ export default async function PlatformPage({ params,searchParams }: PageProps<"/
   const pagination=(number:number)=>`${path}?${new URLSearchParams({q:search,status:filter,page:String(number)})}`;
   const filterLabel=(item:string)=>subscriptionLabels[locale][item as Subscription["status"]]??paymentLabels[locale][item as PaymentStatus]??
     setupLabels[locale][item]??(item==="verified"?t.emailVerified:item==="legacy"?t.legacy:item==="unverified"?(locale==="ar"?"غير موثّق":"Unverified"):item);
-  const [rows, latestEvents, latestJobs, merchantMatches, actor] = await Promise.all([
-    platformRows<unknown>(token, section, search, page, filter),
+  const [rows, latestEvents, latestJobs, merchantMatches, actor, aiOverview] = await Promise.all([
+    section === "ai" ? [] : platformRows<unknown>(token, section, search, page, filter),
     section === "overview" ? platformRows<Event>(token, "audit") : [],
     section === "overview" ? platformRows<Job>(token, "jobs") : [],
     section === "subscriptions" ? platformRows<Merchant>(token, "merchants", search, 1, "") : [],
     readUser(),
+    section === "ai" ? aiAdminOverview(token).catch(() => null) : null,
   ]);
   const actorId = actor?.id ?? "";
   const actorEmail = actor?.email ?? "";
   const date=(value:string)=>new Intl.DateTimeFormat(locale,{dateStyle:"medium",timeStyle:"short",timeZone:"UTC"}).format(new Date(value));
   const numbers=new Intl.NumberFormat(locale);
-  const listing=!["overview","plans","settings"].includes(section);
+  const listing=!["overview","plans","settings","ai"].includes(section);
 
   return <AdminWorkspace locale={locale} path={`/platform/${section}`} roles={access.roles}>
     <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -277,6 +280,7 @@ export default async function PlatformPage({ params,searchParams }: PageProps<"/
     </form>}
     <div className="grid gap-4">
       {listing && !rows.length && !(section === "subscriptions" && merchantMatches.length) && <p className="panel p-5 text-sm">{t.empty}</p>}
+      {section==="ai" && (aiOverview ? <AiAdminPanel locale={locale} data={aiOverview} manage={manager && access.fresh} owner={owner} /> : <p className="panel p-5 text-sm">{t.unavailable}</p>)}
       {section==="overview" && rows[0]==null && <p className="panel p-5 text-sm">{t.unavailable}</p>}
       {section==="overview" && rows[0]!=null && <PlatformOverview locale={locale} counts={rows[0] as Overview}
         events={latestEvents.slice(0, 5)} jobs={latestJobs.slice(0, 4)} date={date} />}
