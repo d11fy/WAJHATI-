@@ -88,3 +88,7 @@
   .store-quick-options { gap: 0.6rem; }
   .store-quick-note { font-size: 0.82rem; font-weight: 700; }
   .store-family .family-tech-promos .store-quick { display: none; }
+  @media (max-width: 39.99rem) {
+    .store-quick-button { gap: 0.3rem; padding-inline: 0.4rem; font-size: 0.78rem; white-space: nowrap; }
+    .store-quick-button svg { inline-size: 0.95rem; block-size: 0.95rem; }
+  }
